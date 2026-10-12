@@ -11,6 +11,7 @@ import {
 } from "../functions/api/job-candidates.js";
 import { authorized } from "../functions/lib/auth.js";
 import { onRequestPost as importCv } from "../functions/api/import.js";
+import { onRequestDelete as deleteCandidates } from "../functions/api/candidates.js";
 
 class FakeDB {
   constructor() {
@@ -122,6 +123,54 @@ test("browser script parses as valid JavaScript", async () => {
   const script = html.match(/<script>([\s\S]*)<\/script>/)?.[1];
   assert.ok(script);
   assert.doesNotThrow(() => new vm.Script(script));
+});
+
+test("permanently deletes selected candidates and their private PDFs", async () => {
+  const candidates = [
+    { id: "candidate-1", file_key: "cv/one.pdf" },
+    { id: "candidate-2", file_key: "cv/two.pdf" }
+  ];
+  const assignments = [{ candidate_id: "candidate-1" }, { candidate_id: "candidate-2" }];
+  const deletedFiles = [];
+  const db = {
+    prepare(sql) {
+      return {
+        bind(...params) {
+          return {
+            async all() {
+              if (sql.includes("SELECT id, file_key FROM candidates")) return { results: candidates.filter(item => params.includes(item.id)) };
+              throw new Error(`Unhandled all query: ${sql}`);
+            },
+            async run() {
+              if (sql.includes("DELETE FROM job_candidates")) {
+                for (let index = assignments.length - 1; index >= 0; index--) if (params.includes(assignments[index].candidate_id)) assignments.splice(index, 1);
+                return;
+              }
+              if (sql.includes("DELETE FROM candidates")) {
+                for (let index = candidates.length - 1; index >= 0; index--) if (params.includes(candidates[index].id)) candidates.splice(index, 1);
+                return;
+              }
+              throw new Error(`Unhandled run query: ${sql}`);
+            }
+          };
+        }
+      };
+    },
+    async batch(statements) { for (const statement of statements) await statement.run(); }
+  };
+  const response = await deleteCandidates({
+    env: { DB: db, CV_BUCKET: { async delete(key) { deletedFiles.push(key); } } },
+    request: new Request("https://example.test/api/candidates", {
+      method: "DELETE",
+      headers: { "Cf-Access-Jwt-Assertion": "signed-access-jwt", "Content-Type": "application/json" },
+      body: JSON.stringify({ ids: ["candidate-1", "candidate-2"] })
+    })
+  });
+  assert.equal(response.status, 200);
+  assert.deepEqual(await response.json(), { deleted: 2 });
+  assert.deepEqual(candidates, []);
+  assert.deepEqual(assignments, []);
+  assert.deepEqual(deletedFiles.sort(), ["cv/one.pdf", "cv/two.pdf"]);
 });
 
 test("requires a Cloudflare Access assertion", async () => {
