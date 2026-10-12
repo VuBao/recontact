@@ -6,6 +6,7 @@ A minimal dashboard that turns PDF CVs into one searchable candidate list.
 
 - Upload one or more PDF CVs
 - Extract name, age, phone, email, current visa, and Japanese level with the OpenAI Responses API
+- Extract selectable text locally with `pdfminer.six` during local development (no AI call)
 - Show every candidate in one searchable table
 - Open the original private PDF from the candidate row
 - Store CV files privately in Cloudflare R2 and extracted fields in Cloudflare D1
@@ -23,4 +24,12 @@ This repository is the source deployed by Cloudflare Pages:
 
 No real CVs, API keys, or secrets belong in this repository.
 
-For a functional local server (including Pages Functions, D1, and R2), configure `.dev.vars` and use `npm run db:local` followed by `npm run dev`. A static HTTP server cannot process CV uploads.
+For local, no-token PDF extraction:
+
+```sh
+python3 -m venv .venv
+.venv/bin/pip install -r requirements-local.txt
+npm run extractor
+```
+
+In a second terminal, use `npm run db:local` followed by `npm run dev`. Image-only scanned PDFs require OCR and are rejected instead of creating incorrect data.

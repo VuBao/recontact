@@ -85,6 +85,17 @@ async function extractProfile(file, buffer, env) {
   return JSON.parse(text);
 }
 
+async function extractProfileLocally(buffer) {
+  const response = await fetch("http://127.0.0.1:8790/extract", {
+    method: "POST",
+    headers: { "Content-Type": "application/pdf" },
+    body: buffer
+  });
+  const result = await response.json();
+  if (!response.ok) throw new Error(result.error || "Local PDF extractor could not read this CV.");
+  return result;
+}
+
 export async function onRequestPost(context) {
   if (!(await authorized(context.request, context.env))) return new Response("Unauthorized", { status: 401 });
   if (!context.env.DB || !context.env.CV_BUCKET) return Response.json({ error: "Storage bindings are not ready." }, { status: 503 });
@@ -104,11 +115,21 @@ export async function onRequestPost(context) {
   ).bind(fileHash).first();
   if (duplicate) return Response.json({ duplicate: true, candidate: duplicate });
 
+  const hostname = new URL(context.request.url).hostname;
+  const localPreview = (hostname === "127.0.0.1" || hostname === "localhost") && !context.env.OPENAI_API_KEY;
   let profile;
-  try {
-    profile = await extractProfile(file, body, context.env);
-  } catch (error) {
-    return Response.json({ error: error.message || "AI could not read this CV." }, { status: 502 });
+  if (localPreview) {
+    try {
+      profile = await extractProfileLocally(body);
+    } catch (error) {
+      return Response.json({ error: error.message || "Local PDF extractor could not read this CV." }, { status: 502 });
+    }
+  } else {
+    try {
+      profile = await extractProfile(file, body, context.env);
+    } catch (error) {
+      return Response.json({ error: error.message || "AI could not read this CV." }, { status: 502 });
+    }
   }
 
   const id = crypto.randomUUID();
@@ -120,7 +141,7 @@ export async function onRequestPost(context) {
     await context.env.DB.prepare(
       `INSERT INTO candidates
         (id, full_name, age, phone, email, current_visa, japanese_level, source, file_key, file_name, file_hash)
-       VALUES (?, ?, ?, ?, ?, ?, ?, 'ai_pdf_import', ?, ?, ?)`
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
     ).bind(
       id,
       fullName,
@@ -129,6 +150,7 @@ export async function onRequestPost(context) {
       profile.email || null,
       profile.current_visa || null,
       profile.japanese_level || null,
+      localPreview ? "local_pdf_preview" : "ai_pdf_import",
       fileKey,
       file.name,
       fileHash
@@ -146,6 +168,7 @@ export async function onRequestPost(context) {
     email: profile.email || null,
     current_visa: profile.current_visa || null,
     japanese_level: profile.japanese_level || null,
-    file_name: file.name
+    file_name: file.name,
+    local_preview: localPreview
   }, { status: 201 });
 }

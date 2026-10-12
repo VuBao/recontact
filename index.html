@@ -71,7 +71,7 @@ async function uploadFiles(files){
   if(!pdfs.length){setStatus('Vui lòng chọn file PDF.','error');return}
   let completed=0,failed=0;
   for(const file of pdfs){
-    setStatus(`AI đang đọc ${completed+failed+1}/${pdfs.length}: ${file.name}`);
+    setStatus(`Đang đọc ${completed+failed+1}/${pdfs.length}: ${file.name}`);
     try{const form=new FormData();form.append('file',file);await api('/api/import',{method:'POST',body:form});completed++}
     catch(error){failed++;setStatus(`${file.name}: ${error.message}`,'error')}
   }

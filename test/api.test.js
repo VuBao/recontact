@@ -192,3 +192,62 @@ test("extracts the requested CV fields and saves the private PDF", async () => {
     globalThis.fetch = originalFetch;
   }
 });
+
+test("uploads a PDF in local preview without an OpenAI key", async () => {
+  let savedParams;
+  let uploadedKey;
+  const db = {
+    prepare(sql) {
+      return {
+        bind(...params) {
+          return {
+            async first() {
+              if (sql.includes("WHERE file_hash")) return null;
+              throw new Error(`Unhandled first query: ${sql}`);
+            },
+            async run() {
+              if (sql.includes("INSERT INTO candidates")) { savedParams = params; return; }
+              throw new Error(`Unhandled run query: ${sql}`);
+            }
+          };
+        }
+      };
+    }
+  };
+  const bucket = {
+    async put(key) { uploadedKey = key; },
+    async delete() {}
+  };
+  const form = new FormData();
+  form.append("file", new File(["%PDF-1.4 local test"], "CV Nguyen Van B.pdf", { type: "application/pdf" }));
+  const originalFetch = globalThis.fetch;
+  globalThis.fetch = async url => {
+    assert.equal(url, "http://127.0.0.1:8790/extract");
+    return Response.json({
+      full_name: "NGUYEN VAN B",
+      age: 27,
+      phone: "0901234567",
+      email: "b@example.com",
+      current_visa: "Kỹ năng đặc định",
+      japanese_level: "N3"
+    });
+  };
+
+  try {
+    const response = await importCv({
+      env: { DB: db, CV_BUCKET: bucket },
+      request: new Request("http://127.0.0.1:8788/api/import", { method: "POST", body: form })
+    });
+    const result = await response.json();
+
+    assert.equal(response.status, 201);
+    assert.equal(result.full_name, "NGUYEN VAN B");
+    assert.equal(result.age, 27);
+    assert.equal(result.local_preview, true);
+    assert.match(uploadedKey, /^cv\/.+\/CV_Nguyen_Van_B\.pdf$/);
+    assert.equal(savedParams[1], "NGUYEN VAN B");
+    assert.equal(savedParams[7], "local_pdf_preview");
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
