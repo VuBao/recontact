@@ -19,19 +19,24 @@ In **Workers & Pages → recontact-7e8 → Settings → Bindings**, add:
 Then add a secret in **Settings → Variables and Secrets**:
 
 - `ADMIN_TOKEN`: a long random value. Never put this value in GitHub or the frontend.
+- `OPENAI_API_KEY`: an OpenAI API key used server-side to read PDF CVs.
 
-Run `schema.sql` in the D1 console before using the API.
+Optional environment variable:
 
-## Pilot data
+- `OPENAI_MODEL`: defaults to `gpt-6-astra`.
 
-After the bindings and schema are ready, verify `/api/health`. The `/api/seed` route can insert 10 synthetic pilot candidates and one pilot job only when called with `Authorization: Bearer <ADMIN_TOKEN>`.
+For a new database, run `schema.sql` in the D1 console. For an existing Recontact database, run `migrations/0002_add_cv_profile_fields.sql` once.
 
-The dashboard uses the same in-memory admin token to call:
+## Dashboard session
 
-- `/api/candidates` for the D1 talent pool
-- `/api/jobs` for persistent jobs
-- `/api/job-candidates` for persistent per-job candidate progress
+After the bindings, schema, and secrets are ready, verify `/api/health`.
 
-The token is never written to local storage or committed to this repository.
+The dashboard uses the admin token once to create a signed, HTTP-only one-year session cookie. It then calls:
 
-Real CVs must be uploaded to R2 later through an authenticated admin-only upload flow; do not commit them to this repository.
+- `/api/import` to send a PDF to OpenAI for structured extraction, save the PDF in R2, and save the fields in D1
+- `/api/candidates` to load the candidate list
+- `/api/cv` to open the authenticated private PDF
+
+The token is never written to local storage or committed to this repository. The cookie contains only an expiry time and an HMAC signature derived from the secret, not the secret itself.
+
+Real CVs must only be uploaded through the authenticated dashboard; do not commit them to this repository.

@@ -1,6 +1,5 @@
-function authorized(request, env) {
-  return Boolean(env.ADMIN_TOKEN) && request.headers.get("Authorization") === `Bearer ${env.ADMIN_TOKEN}`;
-}
+import { authorized } from "../lib/auth.js";
+
 const pilot = [
   ["YAMADA AKI", "aki@example.test", "N2", ["Nhà hàng", "特定技能"]],
   ["TRAN MINH HIEU", "hieu@example.test", "N3", ["Nhà hàng", "Ưu tiên"]],
@@ -14,7 +13,7 @@ const pilot = [
   ["DANG GIA BAO", "bao@example.test", "N2", ["Kỹ sư"]]
 ];
 export async function onRequestPost(context) {
-  if (!authorized(context.request, context.env)) return new Response("Unauthorized", { status: 401 });
+  if (!(await authorized(context.request, context.env))) return new Response("Unauthorized", { status: 401 });
   if (!context.env.DB) return Response.json({ error: "D1 binding DB is not configured." }, { status: 503 });
   const statements = pilot.map(([full_name, email, japanese_level, labels]) =>
     context.env.DB.prepare("INSERT OR IGNORE INTO candidates (id, full_name, email, japanese_level, labels_json, source) VALUES (?, ?, ?, ?, ?, ?)")

@@ -2,8 +2,10 @@
 CREATE TABLE IF NOT EXISTS candidates (
   id TEXT PRIMARY KEY,
   full_name TEXT NOT NULL,
+  age INTEGER,
   email TEXT,
   phone TEXT,
+  current_visa TEXT,
   japanese_level TEXT,
   status TEXT NOT NULL DEFAULT 'POOL',
   labels_json TEXT NOT NULL DEFAULT '[]',

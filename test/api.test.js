@@ -9,6 +9,8 @@ import {
   onRequestPatch as updateAssignment,
   onRequestPost as createAssignment
 } from "../functions/api/job-candidates.js";
+import { createSessionCookie, authorized } from "../functions/lib/auth.js";
+import { onRequestPost as importCv } from "../functions/api/import.js";
 
 class FakeDB {
   constructor() {
@@ -120,4 +122,75 @@ test("browser script parses as valid JavaScript", async () => {
   const script = html.match(/<script>([\s\S]*)<\/script>/)?.[1];
   assert.ok(script);
   assert.doesNotThrow(() => new vm.Script(script));
+});
+
+test("accepts a signed session cookie without exposing the admin token", async () => {
+  const env = { ADMIN_TOKEN: "test-token" };
+  const setCookie = await createSessionCookie(env);
+  const cookie = setCookie.split(";")[0];
+  assert.equal(setCookie.includes(env.ADMIN_TOKEN), false);
+  assert.equal(await authorized(new Request("https://example.test", { headers: { Cookie: cookie } }), env), true);
+});
+
+test("extracts the requested CV fields and saves the private PDF", async () => {
+  let savedParams;
+  let uploadedKey;
+  let requestBody;
+  const db = {
+    prepare(sql) {
+      return {
+        bind(...params) {
+          return {
+            async first() {
+              if (sql.includes("WHERE file_hash")) return null;
+              throw new Error(`Unhandled first query: ${sql}`);
+            },
+            async run() {
+              if (sql.includes("INSERT INTO candidates")) { savedParams = params; return; }
+              throw new Error(`Unhandled run query: ${sql}`);
+            }
+          };
+        }
+      };
+    }
+  };
+  const bucket = {
+    async put(key) { uploadedKey = key; },
+    async delete() {}
+  };
+  const originalFetch = globalThis.fetch;
+  globalThis.fetch = async (_url, options) => {
+    requestBody = JSON.parse(options.body);
+    return Response.json({
+      output: [{ content: [{ type: "output_text", text: JSON.stringify({
+        full_name: "NGUYEN VAN A",
+        age: 28,
+        phone: "0901234567",
+        email: "a@example.com",
+        current_visa: "Kỹ năng đặc định",
+        japanese_level: "N2"
+      }) }] }]
+    });
+  };
+
+  try {
+    const form = new FormData();
+    form.append("file", new File(["%PDF-1.4 test"], "candidate.pdf", { type: "application/pdf" }));
+    const response = await importCv({
+      env: { DB: db, CV_BUCKET: bucket, ADMIN_TOKEN: "test-token", OPENAI_API_KEY: "test-key" },
+      request: new Request("https://example.test/api/import", { method: "POST", headers: { Authorization: "Bearer test-token" }, body: form })
+    });
+    const result = await response.json();
+    assert.equal(response.status, 201);
+    assert.equal(result.full_name, "NGUYEN VAN A");
+    assert.equal(result.age, 28);
+    assert.equal(result.current_visa, "Kỹ năng đặc định");
+    assert.match(uploadedKey, /^cv\/.+\/candidate\.pdf$/);
+    assert.equal(savedParams[1], "NGUYEN VAN A");
+    assert.equal(requestBody.text.format.name, "cv_profile");
+    assert.deepEqual(Object.keys(requestBody.text.format.schema.properties), ["full_name", "age", "phone", "email", "current_visa", "japanese_level"]);
+    assert.equal(requestBody.store, false);
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
 });

@@ -1,15 +1,15 @@
 # Recontact MVP
 
-A lightweight dashboard for managing a reusable CV talent pool.
+A minimal dashboard that turns PDF CVs into one searchable candidate list.
 
 ## Current capabilities
 
-- Filter candidates by labels and search text
-- Track the flow: Talent pool → selected → email sent → interested → interview booked
-- Import a folder of PDF, DOC, or DOCX CVs through the dashboard
-- Store CV files privately in Cloudflare R2 and candidate metadata in Cloudflare D1
-- Load the dashboard talent pool from D1 instead of hard-coded browser data
-- Create jobs and persist each candidate's progress per job
+- Upload one or more PDF CVs
+- Extract name, age, phone, email, current visa, and Japanese level with the OpenAI Responses API
+- Show every candidate in one searchable table
+- Open the original private PDF from the candidate row
+- Store CV files privately in Cloudflare R2 and extracted fields in Cloudflare D1
+- Sign in once and keep the dashboard session in a secure, HTTP-only one-year cookie
 - Keep all data APIs protected by the Cloudflare `ADMIN_TOKEN` secret
 
 ## Source of truth

@@ -1,6 +1,5 @@
-function authorized(request, env) {
-  return Boolean(env.ADMIN_TOKEN) && request.headers.get("Authorization") === `Bearer ${env.ADMIN_TOKEN}`;
-}
+import { authorized } from "../lib/auth.js";
+
 
 const statuses = ["SELECTED", "SENT", "INTERESTED", "BOOKED"];
 const timestampColumns = {
@@ -10,7 +9,7 @@ const timestampColumns = {
 };
 
 export async function onRequestGet(context) {
-  if (!authorized(context.request, context.env)) return new Response("Unauthorized", { status: 401 });
+  if (!(await authorized(context.request, context.env))) return new Response("Unauthorized", { status: 401 });
   if (!context.env.DB) return Response.json({ error: "D1 binding DB is not configured." }, { status: 503 });
 
   const jobId = new URL(context.request.url).searchParams.get("job_id");
@@ -32,7 +31,7 @@ export async function onRequestGet(context) {
 }
 
 export async function onRequestPost(context) {
-  if (!authorized(context.request, context.env)) return new Response("Unauthorized", { status: 401 });
+  if (!(await authorized(context.request, context.env))) return new Response("Unauthorized", { status: 401 });
   if (!context.env.DB) return Response.json({ error: "D1 binding DB is not configured." }, { status: 503 });
 
   const body = await context.request.json();
@@ -59,7 +58,7 @@ export async function onRequestPost(context) {
 }
 
 export async function onRequestPatch(context) {
-  if (!authorized(context.request, context.env)) return new Response("Unauthorized", { status: 401 });
+  if (!(await authorized(context.request, context.env))) return new Response("Unauthorized", { status: 401 });
   if (!context.env.DB) return Response.json({ error: "D1 binding DB is not configured." }, { status: 503 });
 
   const body = await context.request.json();
