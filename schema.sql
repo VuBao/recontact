@@ -34,3 +34,4 @@ CREATE TABLE IF NOT EXISTS job_candidates (
 );
 CREATE INDEX IF NOT EXISTS idx_candidates_status ON candidates(status);
 CREATE INDEX IF NOT EXISTS idx_job_candidates_job ON job_candidates(job_id);
+CREATE INDEX IF NOT EXISTS idx_job_candidates_candidate ON job_candidates(candidate_id);

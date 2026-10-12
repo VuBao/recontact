@@ -8,7 +8,9 @@ A lightweight dashboard for managing a reusable CV talent pool.
 - Track the flow: Talent pool → selected → email sent → interested → interview booked
 - Import a folder of PDF, DOC, or DOCX CVs through the dashboard
 - Store CV files privately in Cloudflare R2 and candidate metadata in Cloudflare D1
-- Keep the import API protected by the Cloudflare `ADMIN_TOKEN` secret
+- Load the dashboard talent pool from D1 instead of hard-coded browser data
+- Create jobs and persist each candidate's progress per job
+- Keep all data APIs protected by the Cloudflare `ADMIN_TOKEN` secret
 
 ## Source of truth
 

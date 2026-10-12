@@ -24,6 +24,14 @@ Run `schema.sql` in the D1 console before using the API.
 
 ## Pilot data
 
-After the bindings and schema are ready, verify `/api/health`. The `/api/seed` route can insert 10 synthetic pilot candidates only when called with `Authorization: Bearer <ADMIN_TOKEN>`.
+After the bindings and schema are ready, verify `/api/health`. The `/api/seed` route can insert 10 synthetic pilot candidates and one pilot job only when called with `Authorization: Bearer <ADMIN_TOKEN>`.
+
+The dashboard uses the same in-memory admin token to call:
+
+- `/api/candidates` for the D1 talent pool
+- `/api/jobs` for persistent jobs
+- `/api/job-candidates` for persistent per-job candidate progress
+
+The token is never written to local storage or committed to this repository.
 
 Real CVs must be uploaded to R2 later through an authenticated admin-only upload flow; do not commit them to this repository.

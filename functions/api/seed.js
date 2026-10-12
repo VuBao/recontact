@@ -20,6 +20,10 @@ export async function onRequestPost(context) {
     context.env.DB.prepare("INSERT OR IGNORE INTO candidates (id, full_name, email, japanese_level, labels_json, source) VALUES (?, ?, ?, ?, ?, ?)")
       .bind(`pilot-${email}`, full_name, email, japanese_level, JSON.stringify(labels), "pilot")
   );
+  statements.push(
+    context.env.DB.prepare("INSERT OR IGNORE INTO jobs (id, title, location, status) VALUES (?, ?, ?, 'OPEN')")
+      .bind("pilot-job-tokyo", "Nhân viên nhà hàng", "Tokyo")
+  );
   await context.env.DB.batch(statements);
-  return Response.json({ imported: pilot.length, message: "Pilot data ready." });
+  return Response.json({ imported: pilot.length, job_id: "pilot-job-tokyo", message: "Pilot data ready." });
 }
