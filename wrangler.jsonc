@@ -1,0 +1,19 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "recontact",
+  "pages_build_output_dir": ".",
+  "compatibility_date": "2026-10-09",
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "recontact-db",
+      "database_id": "5873452b-2528-4e75-a0f1-32df685e97c0"
+    }
+  ],
+  "r2_buckets": [
+    {
+      "binding": "CV_BUCKET",
+      "bucket_name": "recontact-cv-private"
+    }
+  ]
+}

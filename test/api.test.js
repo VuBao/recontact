@@ -9,7 +9,7 @@ import {
   onRequestPatch as updateAssignment,
   onRequestPost as createAssignment
 } from "../functions/api/job-candidates.js";
-import { createSessionCookie, authorized } from "../functions/lib/auth.js";
+import { authorized } from "../functions/lib/auth.js";
 import { onRequestPost as importCv } from "../functions/api/import.js";
 
 class FakeDB {
@@ -75,10 +75,10 @@ class FakeDB {
 
 function context(db, method, path, body) {
   return {
-    env: { DB: db, ADMIN_TOKEN: "test-token" },
+    env: { DB: db },
     request: new Request(`https://example.test${path}`, {
       method,
-      headers: { Authorization: "Bearer test-token", ...(body ? { "Content-Type": "application/json" } : {}) },
+      headers: { "Cf-Access-Jwt-Assertion": "signed-access-jwt", ...(body ? { "Content-Type": "application/json" } : {}) },
       body: body ? JSON.stringify(body) : undefined
     })
   };
@@ -124,12 +124,10 @@ test("browser script parses as valid JavaScript", async () => {
   assert.doesNotThrow(() => new vm.Script(script));
 });
 
-test("accepts a signed session cookie without exposing the admin token", async () => {
-  const env = { ADMIN_TOKEN: "test-token" };
-  const setCookie = await createSessionCookie(env);
-  const cookie = setCookie.split(";")[0];
-  assert.equal(setCookie.includes(env.ADMIN_TOKEN), false);
-  assert.equal(await authorized(new Request("https://example.test", { headers: { Cookie: cookie } }), env), true);
+test("requires a Cloudflare Access assertion", async () => {
+  assert.equal(await authorized(new Request("https://example.test")), false);
+  assert.equal(await authorized(new Request("https://example.test", { headers: { "Cf-Access-Jwt-Assertion": "signed-access-jwt" } })), true);
+  assert.equal(await authorized(new Request("http://127.0.0.1:8080/api/candidates")), true);
 });
 
 test("extracts the requested CV fields and saves the private PDF", async () => {
@@ -177,8 +175,8 @@ test("extracts the requested CV fields and saves the private PDF", async () => {
     const form = new FormData();
     form.append("file", new File(["%PDF-1.4 test"], "candidate.pdf", { type: "application/pdf" }));
     const response = await importCv({
-      env: { DB: db, CV_BUCKET: bucket, ADMIN_TOKEN: "test-token", OPENAI_API_KEY: "test-key" },
-      request: new Request("https://example.test/api/import", { method: "POST", headers: { Authorization: "Bearer test-token" }, body: form })
+      env: { DB: db, CV_BUCKET: bucket, OPENAI_API_KEY: "test-key" },
+      request: new Request("https://example.test/api/import", { method: "POST", headers: { "Cf-Access-Jwt-Assertion": "signed-access-jwt" }, body: form })
     });
     const result = await response.json();
     assert.equal(response.status, 201);

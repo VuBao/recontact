@@ -3,6 +3,8 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "test": "node --test"
+    "test": "node --test",
+    "db:local": "npx --yes wrangler@4.149.0 d1 execute DB --local --file schema.sql --persist-to .wrangler/state --yes",
+    "dev": "npx --yes wrangler@4.149.0 pages dev . --port 8080 --persist-to .wrangler/state"
   }
 }
