@@ -7,7 +7,8 @@ A minimal dashboard that turns PDF CVs into one searchable candidate list.
 - Upload one or more PDF CVs
 - Extract name, age, phone, email, current visa, and Japanese level with the OpenAI Responses API
 - Extract selectable text locally with `pdfminer.six` during local development (no AI call)
-- Show every candidate in one searchable table
+- Show every candidate in one searchable table, 10 records per page, with a running number (STT) that continues across pages
+- List candidates with the highest Japanese level first (N1 → N5, no level last) unless a column sort is chosen
 - Open the original private PDF from the candidate row
 - Store CV files privately in Cloudflare R2 and extracted fields in Cloudflare D1
 - Sign in by email through Cloudflare Access
