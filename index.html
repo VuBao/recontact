@@ -7,6 +7,7 @@
   <style>
     *{box-sizing:border-box}body{margin:0;background:#f7f9fc;color:#17233c;font:15px Arial,sans-serif}.wrap{max-width:1180px;margin:auto;padding:28px 18px}.header{display:flex;align-items:flex-end;justify-content:space-between;gap:18px;margin-bottom:18px}.header h1{font-size:28px;margin:0 0 6px}.muted{color:#667085}.upload{display:flex;align-items:center;gap:10px;flex-wrap:wrap}.button{display:inline-flex;align-items:center;justify-content:center;border:0;border-radius:9px;background:#0f7b70;color:#fff;padding:11px 15px;font:inherit;font-weight:700;cursor:pointer}.button:disabled{opacity:.55;cursor:wait}.file-input{position:absolute;inline-size:1px;block-size:1px;opacity:0}.search{width:280px;max-width:100%;border:1px solid #d0d5dd;border-radius:9px;padding:10px 12px;font:inherit;background:#fff}.bar{display:flex;align-items:center;justify-content:space-between;gap:16px;background:#fff;border:1px solid #e2e8f0;border-radius:14px;padding:14px 16px}.filter-controls{display:flex;align-items:center;gap:10px;flex-wrap:wrap}.filter-select{max-width:180px;border:1px solid #d0d5dd;border-radius:9px;padding:10px;font:inherit;background:#fff;color:#344054}.upload-note{white-space:nowrap}.status{min-height:20px;margin:10px 2px;color:#667085}.status.error{color:#b42318}.status.ok{color:#067647}.table-wrap{overflow-x:hidden;background:#fff;border:1px solid #e2e8f0;border-radius:14px}table{width:100%;border-collapse:collapse;table-layout:fixed;min-width:0}th,td{text-align:left;padding:12px 8px;border-bottom:1px solid #eef2f6;vertical-align:middle;overflow-wrap:anywhere}th{background:#f8fafc;color:#475467;font-size:15px;text-align:center}.name-col{width:25%}th:nth-child(2){width:6%}th:nth-child(3){width:11%}th:nth-child(4){width:27%}th:nth-child(5){width:13%}th:nth-child(6){width:11%}th:nth-child(7){width:7%}tbody tr:last-child td{border-bottom:0}.name{font-weight:700}.name-katakana{font-size:13px;font-weight:600;margin-bottom:3px}.name-romaji{font-size:15px;white-space:nowrap}.empty{text-align:center;color:#667085;padding:44px!important}.cv-link{color:#0f7b70;font-weight:700;text-decoration:none}.cv-link:hover{text-decoration:underline}@media(max-width:720px){.wrap{padding:18px 12px}.header{align-items:stretch;flex-direction:column}.header .button{width:100%}.bar{align-items:stretch;flex-direction:column}.filter-controls{display:grid;grid-template-columns:1fr 1fr}.search{width:100%;grid-column:1/-1}.filter-select{width:100%;max-width:none}.upload-note{white-space:normal}.table-wrap{overflow:visible;border:0;background:transparent}table{min-width:0}thead{display:none}tbody{display:grid;gap:12px}tbody tr{display:block;background:#fff;border:1px solid #e2e8f0;border-radius:12px;overflow:hidden}tbody td{display:grid;grid-template-columns:100px minmax(0,1fr);gap:10px;width:100%;padding:10px 12px;border-bottom:1px solid #eef2f6;overflow-wrap:anywhere}tbody td::before{content:attr(data-label);font-weight:700;color:#667085}tbody td.name{display:block;padding:14px 12px;background:#f8fafc}.name::before,.empty::before{display:none}tbody td:last-child{border-bottom:0}.empty{display:block!important}}@media(max-width:430px){.filter-controls{grid-template-columns:1fr}}
     .column-header{display:flex;align-items:center;justify-content:center;gap:2px}.filter-trigger{flex:0 0 16px;width:16px;height:20px;padding:0;border:0;background:transparent;color:#667085;cursor:pointer;font-size:12px}.filter-trigger.active{color:#0f7b70;font-weight:900}.filter-menu{position:fixed;z-index:20;width:280px;max-height:460px;padding:10px;background:#fff;border:1px solid #d0d5dd;border-radius:10px;box-shadow:0 12px 30px #1018282b;color:#344054}.filter-menu[hidden]{display:none}.filter-menu-title{font-weight:700;margin:2px 2px 8px}.filter-menu-action{display:block;width:100%;padding:8px;border:0;border-radius:6px;background:transparent;text-align:left;font:inherit;cursor:pointer}.filter-menu-action:hover{background:#f2f4f7}.filter-menu-tools{display:flex;justify-content:space-between;gap:8px;margin:8px 2px}.filter-menu-tools button{border:0;background:transparent;color:#0f7b70;padding:0;cursor:pointer}.filter-menu-search{width:100%;padding:8px 10px;border:1px solid #d0d5dd;border-radius:7px;font:inherit}.filter-options{max-height:230px;overflow-y:auto;margin:8px 0}.filter-option{display:flex;align-items:flex-start;gap:8px;padding:6px 4px;cursor:pointer;overflow-wrap:anywhere}.filter-option input{margin-top:2px}.filter-menu-footer{display:flex;justify-content:flex-end;gap:8px;padding-top:8px;border-top:1px solid #eaecf0}.filter-menu-footer button{border:1px solid #d0d5dd;border-radius:7px;background:#fff;padding:8px 14px;font:inherit;cursor:pointer}.filter-menu-footer .apply-filter{border-color:#0f7b70;background:#0f7b70;color:#fff}@media(min-width:721px){.filter-select{display:none}}@media(max-width:720px){.filter-menu{left:12px!important;right:12px;width:auto;max-height:70vh}}
+    .button[hidden]{display:none}.delete-button{background:#b42318}.select-col{width:4%}th.name-col{width:23%}th:nth-child(3){width:6%}th:nth-child(4){width:10%}th:nth-child(5){width:25%}th:nth-child(6){width:13%}th:nth-child(7){width:11%}th:nth-child(8){width:8%}.select-cell{text-align:center}.select-cell input,.select-col input{width:17px;height:17px;cursor:pointer}.confirm-dialog{width:min(420px,calc(100% - 32px));padding:24px;border:0;border-radius:14px;box-shadow:0 18px 50px #10182840;color:#17233c}.confirm-dialog::backdrop{background:#10182880}.confirm-dialog p{margin:0 0 22px;font-size:17px;font-weight:700}.confirm-actions{display:flex;justify-content:flex-end;gap:10px}.confirm-actions button{border:1px solid #d0d5dd;border-radius:8px;background:#fff;padding:9px 18px;font:inherit;font-weight:700;cursor:pointer}.confirm-actions .confirm-delete{border-color:#b42318;background:#b42318;color:#fff}@media(max-width:720px){tbody td.select-cell{display:flex;justify-content:flex-end;padding:10px 12px 0;border-bottom:0;background:#f8fafc}.select-cell::before{display:none}}
   </style>
 </head>
 <body>
@@ -14,6 +15,7 @@
   <header class="header">
     <div><h1>DASHBOARD</h1><div id="count" class="muted">0 hồ sơ</div></div>
     <div class="upload">
+      <button id="delete-selected" class="button delete-button" type="button" hidden>Xóa CV (<span id="selected-count">0</span>)</button>
       <input id="files" class="file-input" type="file" accept="application/pdf,.pdf" multiple>
       <label for="files" class="button">＋ Thêm CV</label>
     </div>
@@ -31,8 +33,8 @@
 
   <div class="table-wrap">
     <table>
-      <thead><tr><th class="name-col">Tên</th><th>Tuổi</th><th>SĐT</th><th>Mail</th><th><div class="column-header"><span>Visa hiện tại</span><button class="filter-trigger" data-filter="current_visa" aria-label="Lọc Visa hiện tại">▼</button></div></th><th><div class="column-header"><span>Tiếng Nhật</span><button class="filter-trigger" data-filter="japanese_level" aria-label="Lọc Tiếng Nhật">▼</button></div></th><th>Hồ sơ</th></tr></thead>
-      <tbody id="candidate-list"><tr><td colspan="7" class="empty">Chưa có hồ sơ.</td></tr></tbody>
+      <thead><tr><th class="select-col"><input id="select-all" type="checkbox" aria-label="Chọn tất cả hồ sơ đang hiển thị"></th><th class="name-col">Tên</th><th>Tuổi</th><th>SĐT</th><th>Mail</th><th><div class="column-header"><span>Visa hiện tại</span><button class="filter-trigger" data-filter="current_visa" aria-label="Lọc Visa hiện tại">▼</button></div></th><th><div class="column-header"><span>Tiếng Nhật</span><button class="filter-trigger" data-filter="japanese_level" aria-label="Lọc Tiếng Nhật">▼</button></div></th><th>Hồ sơ</th></tr></thead>
+      <tbody id="candidate-list"><tr><td colspan="8" class="empty">Chưa có hồ sơ.</td></tr></tbody>
     </table>
   </div>
   <div id="filter-menu" class="filter-menu" hidden>
@@ -44,10 +46,14 @@
     <div id="filter-options" class="filter-options"></div>
     <div class="filter-menu-footer"><button id="filter-cancel" type="button">Hủy</button><button id="filter-apply" class="apply-filter" type="button">OK</button></div>
   </div>
+  <dialog id="delete-dialog" class="confirm-dialog">
+    <p>Có chắc chắn xoá CV này không ?</p>
+    <div class="confirm-actions"><button id="delete-no" type="button">Không</button><button id="delete-yes" class="confirm-delete" type="button">Có</button></div>
+  </dialog>
 </main>
 
 <script>
-let candidates=[],sortKey='',sortDirection=1,activeFilters=new Map(),menuKey='',menuSelection=new Set();
+let candidates=[],sortKey='',sortDirection=1,activeFilters=new Map(),menuKey='',menuSelection=new Set(),selectedIds=new Set(),visibleIds=[];
 
 function escapeHtml(value){return String(value??'').replace(/[&<>'"]/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[char]))}
 function setStatus(message,type=''){const element=document.querySelector('#status');element.textContent=message;element.className='status '+type}
@@ -124,6 +130,13 @@ function openFilterMenu(button){
   const menu=document.querySelector('#filter-menu'),rect=button.getBoundingClientRect();menu.hidden=false;
   menu.style.left=`${Math.max(8,Math.min(rect.left,innerWidth-menu.offsetWidth-8))}px`;menu.style.top=`${Math.max(8,Math.min(rect.bottom+6,innerHeight-menu.offsetHeight-8))}px`;
 }
+function updateSelectionUI(){
+  const count=selectedIds.size,button=document.querySelector('#delete-selected'),selectAll=document.querySelector('#select-all');
+  document.querySelector('#selected-count').textContent=count;button.hidden=count===0;
+  const selectedVisible=visibleIds.filter(id=>selectedIds.has(id)).length;
+  selectAll.checked=visibleIds.length>0&&selectedVisible===visibleIds.length;
+  selectAll.indeterminate=selectedVisible>0&&selectedVisible<visibleIds.length;
+}
 
 async function api(path,options={}){
   const headers={...(options.headers||{})};
@@ -142,7 +155,7 @@ async function api(path,options={}){
 }
 
 async function loadCandidates(){
-  try{candidates=await api('/api/candidates');refreshFilters();setStatus('');render()}
+  try{candidates=await api('/api/candidates');selectedIds=new Set([...selectedIds].filter(id=>candidates.some(item=>item.id===id)));refreshFilters();setStatus('');render()}
   catch(error){setStatus(error.silent?'':error.message,error.silent?'':'error')}
 }
 
@@ -152,10 +165,22 @@ function render(){
   const matches=(selected,value)=>!selected||(selected==='__empty__'?!value:value===selected);
   const visible=candidates.filter(item=>`${item.full_name||''} ${item.phone||''} ${item.email||''}`.toLowerCase().includes(query)&&matches(visa,String(item.current_visa||'').trim())&&matches(japanese,japaneseValue(item.japanese_level))&&[...activeFilters].every(([key,values])=>values.has(columnValue(item,key))));
   if(sortKey)visible.sort(compareCandidates);
+  visibleIds=visible.map(item=>item.id);
   document.querySelector('#count').textContent=`${visible.length}/${candidates.length} hồ sơ`;
   document.querySelectorAll('.filter-trigger').forEach(button=>button.classList.toggle('active',activeFilters.has(button.dataset.filter)));
-  document.querySelector('#candidate-list').innerHTML=visible.length?visible.map(item=>{const name=splitName(item.full_name);return `<tr><td class="name" data-label="Tên">${name.katakana?`<div class="name-katakana">${escapeHtml(name.katakana)}</div>`:''}${name.romaji?`<div class="name-romaji">${escapeHtml(name.romaji)}</div>`:(!name.katakana?'—':'')}</td><td data-label="Tuổi">${escapeHtml(item.age??'—')}</td><td data-label="SĐT">${escapeHtml(item.phone||'—')}</td><td data-label="Mail">${escapeHtml(item.email||'—')}</td><td data-label="Visa hiện tại">${escapeHtml(item.current_visa||'—')}</td><td data-label="Tiếng Nhật">${escapeHtml(item.japanese_level||'—')}</td><td data-label="Hồ sơ">${item.file_name?`<a class="cv-link" href="/api/cv?id=${encodeURIComponent(item.id)}" target="_blank" rel="noopener">Mở PDF</a>`:'—'}</td></tr>`}).join(''):'<tr><td colspan="7" class="empty">Không có hồ sơ phù hợp.</td></tr>';
+  document.querySelector('#candidate-list').innerHTML=visible.length?visible.map(item=>{const name=splitName(item.full_name);return `<tr><td class="select-cell"><input class="row-select" type="checkbox" data-id="${escapeHtml(item.id)}" aria-label="Chọn ${escapeHtml(item.full_name||'hồ sơ')}" ${selectedIds.has(item.id)?'checked':''}></td><td class="name" data-label="Tên">${name.katakana?`<div class="name-katakana">${escapeHtml(name.katakana)}</div>`:''}${name.romaji?`<div class="name-romaji">${escapeHtml(name.romaji)}</div>`:(!name.katakana?'—':'')}</td><td data-label="Tuổi">${escapeHtml(item.age??'—')}</td><td data-label="SĐT">${escapeHtml(item.phone||'—')}</td><td data-label="Mail">${escapeHtml(item.email||'—')}</td><td data-label="Visa hiện tại">${escapeHtml(item.current_visa||'—')}</td><td data-label="Tiếng Nhật">${escapeHtml(item.japanese_level||'—')}</td><td data-label="Hồ sơ">${item.file_name?`<a class="cv-link" href="/api/cv?id=${encodeURIComponent(item.id)}" target="_blank" rel="noopener">Mở PDF</a>`:'—'}</td></tr>`}).join(''):'<tr><td colspan="8" class="empty">Không có hồ sơ phù hợp.</td></tr>';
+  updateSelectionUI();
   fitRomajiNames();
+}
+
+async function deleteSelectedCandidates(){
+  if(!selectedIds.size)return;
+  const confirmButton=document.querySelector('#delete-yes');confirmButton.disabled=true;
+  try{
+    const result=await api('/api/candidates',{method:'DELETE',body:JSON.stringify({ids:[...selectedIds]})});
+    selectedIds.clear();document.querySelector('#delete-dialog').close();await loadCandidates();setStatus(`Đã xóa vĩnh viễn ${result.deleted} CV.`,'ok');
+  }catch(error){document.querySelector('#delete-dialog').close();setStatus(error.message,'error')}
+  finally{confirmButton.disabled=false}
 }
 
 async function uploadFiles(files){
@@ -174,6 +199,11 @@ async function uploadFiles(files){
 
 document.querySelector('#files').addEventListener('change',event=>uploadFiles(event.target.files));
 document.querySelector('#search').addEventListener('input',render);
+document.querySelector('#candidate-list').addEventListener('change',event=>{if(!event.target.classList.contains('row-select'))return;event.target.checked?selectedIds.add(event.target.dataset.id):selectedIds.delete(event.target.dataset.id);updateSelectionUI()});
+document.querySelector('#select-all').addEventListener('change',event=>{visibleIds.forEach(id=>event.target.checked?selectedIds.add(id):selectedIds.delete(id));render()});
+document.querySelector('#delete-selected').addEventListener('click',()=>document.querySelector('#delete-dialog').showModal());
+document.querySelector('#delete-no').addEventListener('click',()=>document.querySelector('#delete-dialog').close());
+document.querySelector('#delete-yes').addEventListener('click',deleteSelectedCandidates);
 document.querySelectorAll('.filter-select').forEach(select=>select.addEventListener('change',render));
 document.querySelectorAll('.filter-trigger').forEach(button=>button.addEventListener('click',event=>{event.stopPropagation();openFilterMenu(button)}));
 document.querySelector('#filter-value-search').addEventListener('input',renderFilterOptions);
