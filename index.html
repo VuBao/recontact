@@ -3,9 +3,9 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>Danh sách CV</title>
+  <title>Dashboard CV</title>
   <style>
-    *{box-sizing:border-box}body{margin:0;background:#f7f9fc;color:#17233c;font:15px Arial,sans-serif}.hidden{display:none!important}.wrap{max-width:1180px;margin:auto;padding:28px 18px}.header{display:flex;align-items:flex-end;justify-content:space-between;gap:18px;margin-bottom:18px}.header h1{font-size:28px;margin:0 0 6px}.muted{color:#667085}.upload{display:flex;align-items:center;gap:10px;flex-wrap:wrap}.button{display:inline-flex;align-items:center;justify-content:center;border:0;border-radius:9px;background:#0f7b70;color:#fff;padding:11px 15px;font:inherit;font-weight:700;cursor:pointer}.button:disabled{opacity:.55;cursor:wait}.file-input{position:absolute;inline-size:1px;block-size:1px;opacity:0}.search{width:280px;max-width:100%;border:1px solid #d0d5dd;border-radius:9px;padding:10px 12px;font:inherit;background:#fff}.bar{display:flex;align-items:center;justify-content:space-between;gap:16px;background:#fff;border:1px solid #e2e8f0;border-radius:14px;padding:14px 16px}.status{min-height:20px;margin:10px 2px;color:#667085}.status.error{color:#b42318}.status.ok{color:#067647}.table-wrap{overflow:auto;background:#fff;border:1px solid #e2e8f0;border-radius:14px}table{width:100%;border-collapse:collapse;min-width:920px}th,td{text-align:left;padding:14px 12px;border-bottom:1px solid #eef2f6;vertical-align:middle}th{background:#f8fafc;color:#475467;font-size:13px;white-space:nowrap}tbody tr:last-child td{border-bottom:0}.name{font-weight:700}.empty{text-align:center;color:#667085;padding:44px!important}.cv-link{color:#0f7b70;font-weight:700;text-decoration:none}.cv-link:hover{text-decoration:underline}.gate{min-height:100vh;display:grid;place-items:center;padding:24px}.gate-card{width:min(420px,100%);background:#fff;border:1px solid #e2e8f0;border-radius:18px;padding:28px;box-shadow:0 20px 45px rgba(15,35,62,.08)}.gate-card h1{margin:5px 0 8px;font-size:26px}.gate-card .search{width:100%;margin-top:18px}.gate-card .button{width:100%;margin-top:10px}.loading{color:#667085;font-weight:700}@media(max-width:720px){.header{align-items:flex-start;flex-direction:column}.bar{align-items:flex-start;flex-direction:column}.search{width:100%}}
+    *{box-sizing:border-box}body{margin:0;background:#f7f9fc;color:#17233c;font:15px Arial,sans-serif}.hidden{display:none!important}.wrap{max-width:1180px;margin:auto;padding:28px 18px}.header{display:flex;align-items:flex-end;justify-content:space-between;gap:18px;margin-bottom:18px}.header h1{font-size:28px;margin:0 0 6px}.muted{color:#667085}.upload{display:flex;align-items:center;gap:10px;flex-wrap:wrap}.button{display:inline-flex;align-items:center;justify-content:center;border:0;border-radius:9px;background:#0f7b70;color:#fff;padding:11px 15px;font:inherit;font-weight:700;cursor:pointer}.button:disabled{opacity:.55;cursor:wait}.file-input{position:absolute;inline-size:1px;block-size:1px;opacity:0}.search{width:280px;max-width:100%;border:1px solid #d0d5dd;border-radius:9px;padding:10px 12px;font:inherit;background:#fff}.bar{display:flex;align-items:center;justify-content:space-between;gap:16px;background:#fff;border:1px solid #e2e8f0;border-radius:14px;padding:14px 16px}.status{min-height:20px;margin:10px 2px;color:#667085}.status.error{color:#b42318}.status.ok{color:#067647}.table-wrap{overflow:auto;background:#fff;border:1px solid #e2e8f0;border-radius:14px}table{width:100%;border-collapse:collapse;min-width:920px}th,td{text-align:left;padding:14px 12px;border-bottom:1px solid #eef2f6;vertical-align:middle}th{background:#f8fafc;color:#475467;font-size:13px;white-space:nowrap}.name-col{width:24%;min-width:220px}tbody tr:last-child td{border-bottom:0}.name{font-weight:700}.empty{text-align:center;color:#667085;padding:44px!important}.cv-link{color:#0f7b70;font-weight:700;text-decoration:none}.cv-link:hover{text-decoration:underline}.gate{min-height:100vh;display:grid;place-items:center;padding:24px}.gate-card{width:min(420px,100%);background:#fff;border:1px solid #e2e8f0;border-radius:18px;padding:28px;box-shadow:0 20px 45px rgba(15,35,62,.08)}.gate-card h1{margin:5px 0 8px;font-size:26px}.gate-card .search{width:100%;margin-top:18px}.gate-card .button{width:100%;margin-top:10px}.loading{color:#667085;font-weight:700}@media(max-width:720px){.header{align-items:flex-start;flex-direction:column}.bar{align-items:flex-start;flex-direction:column}.search{width:100%}}
   </style>
 </head>
 <body>
@@ -24,7 +24,7 @@
 
 <main id="dashboard" class="wrap hidden">
   <header class="header">
-    <div><h1>Danh sách CV</h1><div id="count" class="muted">0 hồ sơ</div></div>
+    <div><h1>DASHBOARD</h1><div id="count" class="muted">0 hồ sơ</div></div>
     <div class="upload">
       <input id="files" class="file-input" type="file" accept="application/pdf,.pdf" multiple>
       <label for="files" class="button">＋ Thêm CV</label>
@@ -39,7 +39,7 @@
 
   <div class="table-wrap">
     <table>
-      <thead><tr><th>Tên</th><th>Tuổi</th><th>SĐT</th><th>Mail</th><th>Visa hiện tại</th><th>Tiếng Nhật</th><th>Hồ sơ</th></tr></thead>
+      <thead><tr><th class="name-col">Tên</th><th>Tuổi</th><th>SĐT</th><th>Mail</th><th>Visa hiện tại</th><th>Tiếng Nhật</th><th>Hồ sơ</th></tr></thead>
       <tbody id="candidate-list"><tr><td colspan="7" class="empty">Chưa có hồ sơ.</td></tr></tbody>
     </table>
   </div>
@@ -60,13 +60,18 @@ async function api(path,options={}){
   const contentType=response.headers.get('content-type')||'';
   const result=contentType.includes('application/json')?await response.json():await response.text();
   if(response.status===401){showLogin();const error=new Error('Phiên đăng nhập đã hết hạn.');error.authRequired=true;throw error}
-  if(!response.ok)throw new Error(typeof result==='string'?result:(result.error||'Không thể thực hiện thao tác.'));
+  if(!response.ok){
+    if(typeof result==='string'&&result.trim().startsWith('<')&&['127.0.0.1','localhost'].includes(location.hostname)){
+      const error=new Error('');error.silent=true;throw error;
+    }
+    throw new Error(typeof result==='string'?result:(result.error||'Không thể thực hiện thao tác.'));
+  }
   return result;
 }
 
 async function loadCandidates(){
   try{candidates=await api('/api/candidates');showDashboard();setStatus('');render()}
-  catch(error){if(!error.authRequired){showDashboard();setStatus(error.message,'error')}}
+  catch(error){if(!error.authRequired){showDashboard();setStatus(error.silent?'':error.message,error.silent?'':'error')}}
 }
 
 function render(){
