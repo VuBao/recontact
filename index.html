@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>Dashboard CV</title>
   <style>
-    *{box-sizing:border-box}body{margin:0;background:#f7f9fc;color:#17233c;font:15px Arial,sans-serif}.wrap{max-width:1180px;margin:auto;padding:28px 18px}.header{display:flex;align-items:flex-end;justify-content:space-between;gap:18px;margin-bottom:18px}.header h1{font-size:28px;margin:0 0 6px}.muted{color:#667085}.upload{display:flex;align-items:center;gap:10px;flex-wrap:wrap}.button{display:inline-flex;align-items:center;justify-content:center;border:0;border-radius:9px;background:#0f7b70;color:#fff;padding:11px 15px;font:inherit;font-weight:700;cursor:pointer}.button:disabled{opacity:.55;cursor:wait}.file-input{position:absolute;inline-size:1px;block-size:1px;opacity:0}.search{width:280px;max-width:100%;border:1px solid #d0d5dd;border-radius:9px;padding:10px 12px;font:inherit;background:#fff}.bar{display:flex;align-items:center;justify-content:space-between;gap:16px;background:#fff;border:1px solid #e2e8f0;border-radius:14px;padding:14px 16px}.status{min-height:20px;margin:10px 2px;color:#667085}.status.error{color:#b42318}.status.ok{color:#067647}.table-wrap{overflow:auto;background:#fff;border:1px solid #e2e8f0;border-radius:14px}table{width:100%;border-collapse:collapse;min-width:920px}th,td{text-align:left;padding:14px 12px;border-bottom:1px solid #eef2f6;vertical-align:middle}th{background:#f8fafc;color:#475467;font-size:13px;white-space:nowrap}.name-col{width:24%;min-width:220px}tbody tr:last-child td{border-bottom:0}.name{font-weight:700}.empty{text-align:center;color:#667085;padding:44px!important}.cv-link{color:#0f7b70;font-weight:700;text-decoration:none}.cv-link:hover{text-decoration:underline}@media(max-width:720px){.header{align-items:flex-start;flex-direction:column}.bar{align-items:flex-start;flex-direction:column}.search{width:100%}}
+    *{box-sizing:border-box}body{margin:0;background:#f7f9fc;color:#17233c;font:15px Arial,sans-serif}.wrap{max-width:1180px;margin:auto;padding:28px 18px}.header{display:flex;align-items:flex-end;justify-content:space-between;gap:18px;margin-bottom:18px}.header h1{font-size:28px;margin:0 0 6px}.muted{color:#667085}.upload{display:flex;align-items:center;gap:10px;flex-wrap:wrap}.button{display:inline-flex;align-items:center;justify-content:center;border:0;border-radius:9px;background:#0f7b70;color:#fff;padding:11px 15px;font:inherit;font-weight:700;cursor:pointer}.button:disabled{opacity:.55;cursor:wait}.file-input{position:absolute;inline-size:1px;block-size:1px;opacity:0}.search{width:280px;max-width:100%;border:1px solid #d0d5dd;border-radius:9px;padding:10px 12px;font:inherit;background:#fff}.bar{display:flex;align-items:center;justify-content:space-between;gap:16px;background:#fff;border:1px solid #e2e8f0;border-radius:14px;padding:14px 16px}.filter-controls{display:flex;align-items:center;gap:10px;flex-wrap:wrap}.filter-select{max-width:180px;border:1px solid #d0d5dd;border-radius:9px;padding:10px;font:inherit;background:#fff;color:#344054}.upload-note{white-space:nowrap}.status{min-height:20px;margin:10px 2px;color:#667085}.status.error{color:#b42318}.status.ok{color:#067647}.table-wrap{overflow:auto;background:#fff;border:1px solid #e2e8f0;border-radius:14px}table{width:100%;border-collapse:collapse;min-width:920px}th,td{text-align:left;padding:14px 12px;border-bottom:1px solid #eef2f6;vertical-align:middle}th{background:#f8fafc;color:#475467;font-size:15px;text-align:center;white-space:nowrap}.sort-button{appearance:none;border:0;background:transparent;color:inherit;cursor:pointer;font:inherit;font-weight:700;padding:0}.sort-icon{display:inline-block;width:12px;color:#0f7b70}.name-col{width:24%;min-width:220px}tbody tr:last-child td{border-bottom:0}.name{font-weight:700}.name-katakana{font-size:13px;font-weight:600;margin-bottom:3px}.name-romaji{font-size:15px}.empty{text-align:center;color:#667085;padding:44px!important}.cv-link{color:#0f7b70;font-weight:700;text-decoration:none}.cv-link:hover{text-decoration:underline}@media(max-width:720px){.wrap{padding:18px 12px}.header{align-items:stretch;flex-direction:column}.header .button{width:100%}.bar{align-items:stretch;flex-direction:column}.filter-controls{display:grid;grid-template-columns:1fr 1fr}.search{width:100%;grid-column:1/-1}.filter-select{width:100%;max-width:none}.upload-note{white-space:normal}.table-wrap{overflow:visible;border:0;background:transparent}table{min-width:0}thead{display:none}tbody{display:grid;gap:12px}tbody tr{display:block;background:#fff;border:1px solid #e2e8f0;border-radius:12px;overflow:hidden}tbody td{display:grid;grid-template-columns:100px minmax(0,1fr);gap:10px;width:100%;padding:10px 12px;border-bottom:1px solid #eef2f6;overflow-wrap:anywhere}tbody td::before{content:attr(data-label);font-weight:700;color:#667085}tbody td.name{display:block;padding:14px 12px;background:#f8fafc}.name::before,.empty::before{display:none}tbody td:last-child{border-bottom:0}.empty{display:block!important}}@media(max-width:430px){.filter-controls{grid-template-columns:1fr}}
   </style>
 </head>
 <body>
@@ -19,24 +19,62 @@
   </header>
 
   <section class="bar">
-    <input id="search" class="search" placeholder="Tìm theo tên, SĐT hoặc email">
-    <span class="muted">Chỉ nhận hồ sơ PDF, tối đa 15 MB/file.</span>
+    <div class="filter-controls">
+      <input id="search" class="search" placeholder="Tìm theo tên, SĐT hoặc email">
+      <select id="visa-filter" class="filter-select" aria-label="Lọc theo visa"><option value="">Visa: Tất cả</option></select>
+      <select id="japanese-filter" class="filter-select" aria-label="Lọc theo tiếng Nhật"><option value="">Tiếng Nhật: Tất cả</option></select>
+      <select id="file-filter" class="filter-select" aria-label="Lọc theo hồ sơ"><option value="">Hồ sơ: Tất cả</option><option value="yes">Có PDF</option><option value="no">Chưa có PDF</option></select>
+    </div>
+    <span class="muted upload-note">Chỉ nhận hồ sơ PDF, tối đa 15 MB/file.</span>
   </section>
   <p id="status" class="status"></p>
 
   <div class="table-wrap">
     <table>
-      <thead><tr><th class="name-col">Tên</th><th>Tuổi</th><th>SĐT</th><th>Mail</th><th>Visa hiện tại</th><th>Tiếng Nhật</th><th>Hồ sơ</th></tr></thead>
+      <thead><tr><th class="name-col"><button class="sort-button" data-sort="full_name">Tên <span class="sort-icon"></span></button></th><th><button class="sort-button" data-sort="age">Tuổi <span class="sort-icon"></span></button></th><th><button class="sort-button" data-sort="phone">SĐT <span class="sort-icon"></span></button></th><th><button class="sort-button" data-sort="email">Mail <span class="sort-icon"></span></button></th><th><button class="sort-button" data-sort="current_visa">Visa hiện tại <span class="sort-icon"></span></button></th><th><button class="sort-button" data-sort="japanese_level">Tiếng Nhật <span class="sort-icon"></span></button></th><th><button class="sort-button" data-sort="file_name">Hồ sơ <span class="sort-icon"></span></button></th></tr></thead>
       <tbody id="candidate-list"><tr><td colspan="7" class="empty">Chưa có hồ sơ.</td></tr></tbody>
     </table>
   </div>
 </main>
 
 <script>
-let candidates=[];
+let candidates=[],sortKey='',sortDirection=1;
 
 function escapeHtml(value){return String(value??'').replace(/[&<>'"]/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[char]))}
 function setStatus(message,type=''){const element=document.querySelector('#status');element.textContent=message;element.className='status '+type}
+function splitName(value){
+  const original=String(value||'').trim(),katakana=[];
+  const cleaned=original.replace(/[（(]([^）)]+)[）)]/g,(whole,inside)=>{
+    const text=inside.trim();
+    if(/^(?:履歴書なし|写真なし|顔写真なし|CVなし)$/i.test(text))return ' ';
+    if(/^[\u30a0-\u30ff\u31f0-\u31ffー・\s]+$/.test(text)){katakana.push(text);return ' '}
+    return whole;
+  }).replace(/\s+/g,' ').trim();
+  const hasLatin=/[A-Za-z]/.test(cleaned),hasJapanese=/[\u3040-\u30ff\u31f0-\u31ff\u3400-\u9fff]/.test(cleaned);
+  if(!hasLatin&&hasJapanese&&cleaned)katakana.unshift(cleaned);
+  return {katakana:katakana.join(' '),romaji:hasLatin?cleaned:(!hasJapanese?cleaned:'')};
+}
+function compareCandidates(a,b){
+  const left=a[sortKey],right=b[sortKey];
+  if(left==null||left==='')return right==null||right===''?0:1;
+  if(right==null||right==='')return -1;
+  if(sortKey==='age')return (Number(left)-Number(right))*sortDirection;
+  return String(left).localeCompare(String(right),'vi',{numeric:true,sensitivity:'base'})*sortDirection;
+}
+function japaneseValue(value){
+  const text=String(value||'').trim(),level=text.match(/\bN[1-5]\b/i);
+  return level?level[0].toUpperCase():text;
+}
+function fillFilter(selector,key,label,normalize=value=>String(value||'').trim()){
+  const select=document.querySelector(selector),current=select.value;
+  const values=[...new Set(candidates.map(item=>normalize(item[key])).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'vi',{numeric:true,sensitivity:'base'}));
+  select.replaceChildren(new Option(`${label}: Tất cả`,''),new Option(`${label}: Chưa có`,'__empty__'),...values.map(value=>new Option(value,value)));
+  if([...select.options].some(option=>option.value===current))select.value=current;
+}
+function refreshFilters(){
+  fillFilter('#visa-filter','current_visa','Visa');
+  fillFilter('#japanese-filter','japanese_level','Tiếng Nhật',japaneseValue);
+}
 
 async function api(path,options={}){
   const headers={...(options.headers||{})};
@@ -55,15 +93,19 @@ async function api(path,options={}){
 }
 
 async function loadCandidates(){
-  try{candidates=await api('/api/candidates');setStatus('');render()}
+  try{candidates=await api('/api/candidates');refreshFilters();setStatus('');render()}
   catch(error){setStatus(error.silent?'':error.message,error.silent?'':'error')}
 }
 
 function render(){
   const query=document.querySelector('#search').value.trim().toLowerCase();
-  const visible=candidates.filter(item=>`${item.full_name||''} ${item.phone||''} ${item.email||''}`.toLowerCase().includes(query));
+  const visa=document.querySelector('#visa-filter').value,japanese=document.querySelector('#japanese-filter').value,file=document.querySelector('#file-filter').value;
+  const matches=(selected,value)=>!selected||(selected==='__empty__'?!value:value===selected);
+  const visible=candidates.filter(item=>`${item.full_name||''} ${item.phone||''} ${item.email||''}`.toLowerCase().includes(query)&&matches(visa,String(item.current_visa||'').trim())&&matches(japanese,japaneseValue(item.japanese_level))&&(!file||(file==='yes')===Boolean(item.file_name)));
+  if(sortKey)visible.sort(compareCandidates);
   document.querySelector('#count').textContent=`${visible.length}/${candidates.length} hồ sơ`;
-  document.querySelector('#candidate-list').innerHTML=visible.length?visible.map(item=>`<tr><td class="name">${escapeHtml(item.full_name||'—')}</td><td>${escapeHtml(item.age??'—')}</td><td>${escapeHtml(item.phone||'—')}</td><td>${escapeHtml(item.email||'—')}</td><td>${escapeHtml(item.current_visa||'—')}</td><td>${escapeHtml(item.japanese_level||'—')}</td><td>${item.file_name?`<a class="cv-link" href="/api/cv?id=${encodeURIComponent(item.id)}" target="_blank" rel="noopener">Mở PDF</a>`:'—'}</td></tr>`).join(''):'<tr><td colspan="7" class="empty">Không có hồ sơ phù hợp.</td></tr>';
+  document.querySelectorAll('.sort-button').forEach(button=>button.querySelector('.sort-icon').textContent=button.dataset.sort===sortKey?(sortDirection===1?'▲':'▼'):'');
+  document.querySelector('#candidate-list').innerHTML=visible.length?visible.map(item=>{const name=splitName(item.full_name);return `<tr><td class="name" data-label="Tên">${name.katakana?`<div class="name-katakana">${escapeHtml(name.katakana)}</div>`:''}${name.romaji?`<div class="name-romaji">${escapeHtml(name.romaji)}</div>`:(!name.katakana?'—':'')}</td><td data-label="Tuổi">${escapeHtml(item.age??'—')}</td><td data-label="SĐT">${escapeHtml(item.phone||'—')}</td><td data-label="Mail">${escapeHtml(item.email||'—')}</td><td data-label="Visa hiện tại">${escapeHtml(item.current_visa||'—')}</td><td data-label="Tiếng Nhật">${escapeHtml(item.japanese_level||'—')}</td><td data-label="Hồ sơ">${item.file_name?`<a class="cv-link" href="/api/cv?id=${encodeURIComponent(item.id)}" target="_blank" rel="noopener">Mở PDF</a>`:'—'}</td></tr>`}).join(''):'<tr><td colspan="7" class="empty">Không có hồ sơ phù hợp.</td></tr>';
 }
 
 async function uploadFiles(files){
@@ -82,6 +124,8 @@ async function uploadFiles(files){
 
 document.querySelector('#files').addEventListener('change',event=>uploadFiles(event.target.files));
 document.querySelector('#search').addEventListener('input',render);
+document.querySelectorAll('.filter-select').forEach(select=>select.addEventListener('change',render));
+document.querySelectorAll('.sort-button').forEach(button=>button.addEventListener('click',()=>{const key=button.dataset.sort;sortDirection=sortKey===key?-sortDirection:1;sortKey=key;render()}));
 loadCandidates();
 </script>
 </body>
