@@ -5,7 +5,8 @@
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>Dashboard CV</title>
   <style>
-    *{box-sizing:border-box}body{margin:0;background:#f7f9fc;color:#17233c;font:15px Arial,sans-serif}.wrap{max-width:1180px;margin:auto;padding:28px 18px}.header{display:flex;align-items:flex-end;justify-content:space-between;gap:18px;margin-bottom:18px}.header h1{font-size:28px;margin:0 0 6px}.muted{color:#667085}.upload{display:flex;align-items:center;gap:10px;flex-wrap:wrap}.button{display:inline-flex;align-items:center;justify-content:center;border:0;border-radius:9px;background:#0f7b70;color:#fff;padding:11px 15px;font:inherit;font-weight:700;cursor:pointer}.button:disabled{opacity:.55;cursor:wait}.file-input{position:absolute;inline-size:1px;block-size:1px;opacity:0}.search{width:280px;max-width:100%;border:1px solid #d0d5dd;border-radius:9px;padding:10px 12px;font:inherit;background:#fff}.bar{display:flex;align-items:center;justify-content:space-between;gap:16px;background:#fff;border:1px solid #e2e8f0;border-radius:14px;padding:14px 16px}.filter-controls{display:flex;align-items:center;gap:10px;flex-wrap:wrap}.filter-select{max-width:180px;border:1px solid #d0d5dd;border-radius:9px;padding:10px;font:inherit;background:#fff;color:#344054}.upload-note{white-space:nowrap}.status{min-height:20px;margin:10px 2px;color:#667085}.status.error{color:#b42318}.status.ok{color:#067647}.table-wrap{overflow-x:hidden;background:#fff;border:1px solid #e2e8f0;border-radius:14px}table{width:100%;border-collapse:collapse;table-layout:fixed;min-width:0}th,td{text-align:left;padding:12px 8px;border-bottom:1px solid #eef2f6;vertical-align:middle;overflow-wrap:anywhere}th{background:#f8fafc;color:#475467;font-size:15px;text-align:center}.sort-button{appearance:none;border:0;background:transparent;color:inherit;cursor:pointer;font:inherit;font-weight:700;line-height:1.2;padding:0;white-space:normal}.sort-icon{display:inline-block;width:10px;color:#0f7b70}.name-col{width:25%}th:nth-child(2){width:6%}th:nth-child(3){width:11%}th:nth-child(4){width:27%}th:nth-child(5){width:13%}th:nth-child(6){width:11%}th:nth-child(7){width:7%}tbody tr:last-child td{border-bottom:0}.name{font-weight:700}.name-katakana{font-size:13px;font-weight:600;margin-bottom:3px}.name-romaji{font-size:15px;white-space:nowrap}.empty{text-align:center;color:#667085;padding:44px!important}.cv-link{color:#0f7b70;font-weight:700;text-decoration:none}.cv-link:hover{text-decoration:underline}@media(max-width:720px){.wrap{padding:18px 12px}.header{align-items:stretch;flex-direction:column}.header .button{width:100%}.bar{align-items:stretch;flex-direction:column}.filter-controls{display:grid;grid-template-columns:1fr 1fr}.search{width:100%;grid-column:1/-1}.filter-select{width:100%;max-width:none}.upload-note{white-space:normal}.table-wrap{overflow:visible;border:0;background:transparent}table{min-width:0}thead{display:none}tbody{display:grid;gap:12px}tbody tr{display:block;background:#fff;border:1px solid #e2e8f0;border-radius:12px;overflow:hidden}tbody td{display:grid;grid-template-columns:100px minmax(0,1fr);gap:10px;width:100%;padding:10px 12px;border-bottom:1px solid #eef2f6;overflow-wrap:anywhere}tbody td::before{content:attr(data-label);font-weight:700;color:#667085}tbody td.name{display:block;padding:14px 12px;background:#f8fafc}.name::before,.empty::before{display:none}tbody td:last-child{border-bottom:0}.empty{display:block!important}}@media(max-width:430px){.filter-controls{grid-template-columns:1fr}}
+    *{box-sizing:border-box}body{margin:0;background:#f7f9fc;color:#17233c;font:15px Arial,sans-serif}.wrap{max-width:1180px;margin:auto;padding:28px 18px}.header{display:flex;align-items:flex-end;justify-content:space-between;gap:18px;margin-bottom:18px}.header h1{font-size:28px;margin:0 0 6px}.muted{color:#667085}.upload{display:flex;align-items:center;gap:10px;flex-wrap:wrap}.button{display:inline-flex;align-items:center;justify-content:center;border:0;border-radius:9px;background:#0f7b70;color:#fff;padding:11px 15px;font:inherit;font-weight:700;cursor:pointer}.button:disabled{opacity:.55;cursor:wait}.file-input{position:absolute;inline-size:1px;block-size:1px;opacity:0}.search{width:280px;max-width:100%;border:1px solid #d0d5dd;border-radius:9px;padding:10px 12px;font:inherit;background:#fff}.bar{display:flex;align-items:center;justify-content:space-between;gap:16px;background:#fff;border:1px solid #e2e8f0;border-radius:14px;padding:14px 16px}.filter-controls{display:flex;align-items:center;gap:10px;flex-wrap:wrap}.filter-select{max-width:180px;border:1px solid #d0d5dd;border-radius:9px;padding:10px;font:inherit;background:#fff;color:#344054}.upload-note{white-space:nowrap}.status{min-height:20px;margin:10px 2px;color:#667085}.status.error{color:#b42318}.status.ok{color:#067647}.table-wrap{overflow-x:hidden;background:#fff;border:1px solid #e2e8f0;border-radius:14px}table{width:100%;border-collapse:collapse;table-layout:fixed;min-width:0}th,td{text-align:left;padding:12px 8px;border-bottom:1px solid #eef2f6;vertical-align:middle;overflow-wrap:anywhere}th{background:#f8fafc;color:#475467;font-size:15px;text-align:center}.name-col{width:25%}th:nth-child(2){width:6%}th:nth-child(3){width:11%}th:nth-child(4){width:27%}th:nth-child(5){width:13%}th:nth-child(6){width:11%}th:nth-child(7){width:7%}tbody tr:last-child td{border-bottom:0}.name{font-weight:700}.name-katakana{font-size:13px;font-weight:600;margin-bottom:3px}.name-romaji{font-size:15px;white-space:nowrap}.empty{text-align:center;color:#667085;padding:44px!important}.cv-link{color:#0f7b70;font-weight:700;text-decoration:none}.cv-link:hover{text-decoration:underline}@media(max-width:720px){.wrap{padding:18px 12px}.header{align-items:stretch;flex-direction:column}.header .button{width:100%}.bar{align-items:stretch;flex-direction:column}.filter-controls{display:grid;grid-template-columns:1fr 1fr}.search{width:100%;grid-column:1/-1}.filter-select{width:100%;max-width:none}.upload-note{white-space:normal}.table-wrap{overflow:visible;border:0;background:transparent}table{min-width:0}thead{display:none}tbody{display:grid;gap:12px}tbody tr{display:block;background:#fff;border:1px solid #e2e8f0;border-radius:12px;overflow:hidden}tbody td{display:grid;grid-template-columns:100px minmax(0,1fr);gap:10px;width:100%;padding:10px 12px;border-bottom:1px solid #eef2f6;overflow-wrap:anywhere}tbody td::before{content:attr(data-label);font-weight:700;color:#667085}tbody td.name{display:block;padding:14px 12px;background:#f8fafc}.name::before,.empty::before{display:none}tbody td:last-child{border-bottom:0}.empty{display:block!important}}@media(max-width:430px){.filter-controls{grid-template-columns:1fr}}
+    .column-header{display:flex;align-items:center;justify-content:center;gap:2px}.filter-trigger{flex:0 0 16px;width:16px;height:20px;padding:0;border:0;background:transparent;color:#667085;cursor:pointer;font-size:12px}.filter-trigger.active{color:#0f7b70;font-weight:900}.filter-menu{position:fixed;z-index:20;width:280px;max-height:460px;padding:10px;background:#fff;border:1px solid #d0d5dd;border-radius:10px;box-shadow:0 12px 30px #1018282b;color:#344054}.filter-menu[hidden]{display:none}.filter-menu-title{font-weight:700;margin:2px 2px 8px}.filter-menu-action{display:block;width:100%;padding:8px;border:0;border-radius:6px;background:transparent;text-align:left;font:inherit;cursor:pointer}.filter-menu-action:hover{background:#f2f4f7}.filter-menu-tools{display:flex;justify-content:space-between;gap:8px;margin:8px 2px}.filter-menu-tools button{border:0;background:transparent;color:#0f7b70;padding:0;cursor:pointer}.filter-menu-search{width:100%;padding:8px 10px;border:1px solid #d0d5dd;border-radius:7px;font:inherit}.filter-options{max-height:230px;overflow-y:auto;margin:8px 0}.filter-option{display:flex;align-items:flex-start;gap:8px;padding:6px 4px;cursor:pointer;overflow-wrap:anywhere}.filter-option input{margin-top:2px}.filter-menu-footer{display:flex;justify-content:flex-end;gap:8px;padding-top:8px;border-top:1px solid #eaecf0}.filter-menu-footer button{border:1px solid #d0d5dd;border-radius:7px;background:#fff;padding:8px 14px;font:inherit;cursor:pointer}.filter-menu-footer .apply-filter{border-color:#0f7b70;background:#0f7b70;color:#fff}@media(min-width:721px){.filter-select{display:none}}@media(max-width:720px){.filter-menu{left:12px!important;right:12px;width:auto;max-height:70vh}}
   </style>
 </head>
 <body>
@@ -23,7 +24,6 @@
       <input id="search" class="search" placeholder="Tìm theo tên, SĐT hoặc email">
       <select id="visa-filter" class="filter-select" aria-label="Lọc theo visa"><option value="">Visa: Tất cả</option></select>
       <select id="japanese-filter" class="filter-select" aria-label="Lọc theo tiếng Nhật"><option value="">Tiếng Nhật: Tất cả</option></select>
-      <select id="file-filter" class="filter-select" aria-label="Lọc theo hồ sơ"><option value="">Hồ sơ: Tất cả</option><option value="yes">Có PDF</option><option value="no">Chưa có PDF</option></select>
     </div>
     <span class="muted upload-note">Chỉ nhận hồ sơ PDF, tối đa 15 MB/file.</span>
   </section>
@@ -31,14 +31,23 @@
 
   <div class="table-wrap">
     <table>
-      <thead><tr><th class="name-col"><button class="sort-button" data-sort="full_name">Tên <span class="sort-icon"></span></button></th><th><button class="sort-button" data-sort="age">Tuổi <span class="sort-icon"></span></button></th><th><button class="sort-button" data-sort="phone">SĐT <span class="sort-icon"></span></button></th><th><button class="sort-button" data-sort="email">Mail <span class="sort-icon"></span></button></th><th><button class="sort-button" data-sort="current_visa">Visa hiện tại <span class="sort-icon"></span></button></th><th><button class="sort-button" data-sort="japanese_level">Tiếng Nhật <span class="sort-icon"></span></button></th><th><button class="sort-button" data-sort="file_name">Hồ sơ <span class="sort-icon"></span></button></th></tr></thead>
+      <thead><tr><th class="name-col">Tên</th><th>Tuổi</th><th>SĐT</th><th>Mail</th><th><div class="column-header"><span>Visa hiện tại</span><button class="filter-trigger" data-filter="current_visa" aria-label="Lọc Visa hiện tại">▼</button></div></th><th><div class="column-header"><span>Tiếng Nhật</span><button class="filter-trigger" data-filter="japanese_level" aria-label="Lọc Tiếng Nhật">▼</button></div></th><th>Hồ sơ</th></tr></thead>
       <tbody id="candidate-list"><tr><td colspan="7" class="empty">Chưa có hồ sơ.</td></tr></tbody>
     </table>
+  </div>
+  <div id="filter-menu" class="filter-menu" hidden>
+    <div id="filter-menu-title" class="filter-menu-title"></div>
+    <button class="filter-menu-action" data-menu-sort="1">Sắp xếp A → Z</button>
+    <button class="filter-menu-action" data-menu-sort="-1">Sắp xếp Z → A</button>
+    <div class="filter-menu-tools"><button id="filter-all" type="button">Chọn tất cả</button><button id="filter-clear" type="button">Xóa</button></div>
+    <input id="filter-value-search" class="filter-menu-search" placeholder="Tìm giá trị" aria-label="Tìm giá trị lọc">
+    <div id="filter-options" class="filter-options"></div>
+    <div class="filter-menu-footer"><button id="filter-cancel" type="button">Hủy</button><button id="filter-apply" class="apply-filter" type="button">OK</button></div>
   </div>
 </main>
 
 <script>
-let candidates=[],sortKey='',sortDirection=1;
+let candidates=[],sortKey='',sortDirection=1,activeFilters=new Map(),menuKey='',menuSelection=new Set();
 
 function escapeHtml(value){return String(value??'').replace(/[&<>'"]/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[char]))}
 function setStatus(message,type=''){const element=document.querySelector('#status');element.textContent=message;element.className='status '+type}
@@ -91,6 +100,30 @@ function fitRomajiNames(){
     while(element.scrollWidth>element.clientWidth&&size>9){size-=.5;element.style.fontSize=`${size}px`}
   });
 }
+const columnLabels={current_visa:'Visa hiện tại',japanese_level:'Tiếng Nhật'};
+function columnValue(item,key){
+  if(key==='japanese_level')return japaneseValue(item[key])||'__empty__';
+  return String(item[key]??'').trim()||'__empty__';
+}
+function columnValues(key){return [...new Set(candidates.map(item=>columnValue(item,key)))].sort((a,b)=>a==='__empty__'?1:b==='__empty__'?-1:a.localeCompare(b,'vi',{numeric:true,sensitivity:'base'}))}
+function valueLabel(value){return value==='__empty__'?'(Trống)':value}
+function renderFilterOptions(){
+  const query=document.querySelector('#filter-value-search').value.trim().toLowerCase(),container=document.querySelector('#filter-options');
+  container.replaceChildren(...columnValues(menuKey).filter(value=>valueLabel(value).toLowerCase().includes(query)).map(value=>{
+    const label=document.createElement('label'),input=document.createElement('input'),text=document.createElement('span');
+    label.className='filter-option';input.type='checkbox';input.checked=menuSelection.has(value);text.textContent=valueLabel(value);
+    input.addEventListener('change',()=>input.checked?menuSelection.add(value):menuSelection.delete(value));
+    label.append(input,text);return label;
+  }));
+}
+function closeFilterMenu(){document.querySelector('#filter-menu').hidden=true;menuKey=''}
+function openFilterMenu(button){
+  menuKey=button.dataset.filter;const values=columnValues(menuKey),active=activeFilters.get(menuKey);
+  menuSelection=new Set(active||values);document.querySelector('#filter-menu-title').textContent=`Lọc ${columnLabels[menuKey]}`;
+  document.querySelector('#filter-value-search').value='';renderFilterOptions();
+  const menu=document.querySelector('#filter-menu'),rect=button.getBoundingClientRect();menu.hidden=false;
+  menu.style.left=`${Math.max(8,Math.min(rect.left,innerWidth-menu.offsetWidth-8))}px`;menu.style.top=`${Math.max(8,Math.min(rect.bottom+6,innerHeight-menu.offsetHeight-8))}px`;
+}
 
 async function api(path,options={}){
   const headers={...(options.headers||{})};
@@ -115,12 +148,12 @@ async function loadCandidates(){
 
 function render(){
   const query=document.querySelector('#search').value.trim().toLowerCase();
-  const visa=document.querySelector('#visa-filter').value,japanese=document.querySelector('#japanese-filter').value,file=document.querySelector('#file-filter').value;
+  const visa=document.querySelector('#visa-filter').value,japanese=document.querySelector('#japanese-filter').value;
   const matches=(selected,value)=>!selected||(selected==='__empty__'?!value:value===selected);
-  const visible=candidates.filter(item=>`${item.full_name||''} ${item.phone||''} ${item.email||''}`.toLowerCase().includes(query)&&matches(visa,String(item.current_visa||'').trim())&&matches(japanese,japaneseValue(item.japanese_level))&&(!file||(file==='yes')===Boolean(item.file_name)));
+  const visible=candidates.filter(item=>`${item.full_name||''} ${item.phone||''} ${item.email||''}`.toLowerCase().includes(query)&&matches(visa,String(item.current_visa||'').trim())&&matches(japanese,japaneseValue(item.japanese_level))&&[...activeFilters].every(([key,values])=>values.has(columnValue(item,key))));
   if(sortKey)visible.sort(compareCandidates);
   document.querySelector('#count').textContent=`${visible.length}/${candidates.length} hồ sơ`;
-  document.querySelectorAll('.sort-button').forEach(button=>button.querySelector('.sort-icon').textContent=button.dataset.sort===sortKey?(sortDirection===1?'▲':'▼'):'');
+  document.querySelectorAll('.filter-trigger').forEach(button=>button.classList.toggle('active',activeFilters.has(button.dataset.filter)));
   document.querySelector('#candidate-list').innerHTML=visible.length?visible.map(item=>{const name=splitName(item.full_name);return `<tr><td class="name" data-label="Tên">${name.katakana?`<div class="name-katakana">${escapeHtml(name.katakana)}</div>`:''}${name.romaji?`<div class="name-romaji">${escapeHtml(name.romaji)}</div>`:(!name.katakana?'—':'')}</td><td data-label="Tuổi">${escapeHtml(item.age??'—')}</td><td data-label="SĐT">${escapeHtml(item.phone||'—')}</td><td data-label="Mail">${escapeHtml(item.email||'—')}</td><td data-label="Visa hiện tại">${escapeHtml(item.current_visa||'—')}</td><td data-label="Tiếng Nhật">${escapeHtml(item.japanese_level||'—')}</td><td data-label="Hồ sơ">${item.file_name?`<a class="cv-link" href="/api/cv?id=${encodeURIComponent(item.id)}" target="_blank" rel="noopener">Mở PDF</a>`:'—'}</td></tr>`}).join(''):'<tr><td colspan="7" class="empty">Không có hồ sơ phù hợp.</td></tr>';
   fitRomajiNames();
 }
@@ -142,8 +175,16 @@ async function uploadFiles(files){
 document.querySelector('#files').addEventListener('change',event=>uploadFiles(event.target.files));
 document.querySelector('#search').addEventListener('input',render);
 document.querySelectorAll('.filter-select').forEach(select=>select.addEventListener('change',render));
-document.querySelectorAll('.sort-button').forEach(button=>button.addEventListener('click',()=>{const key=button.dataset.sort;sortDirection=sortKey===key?-sortDirection:1;sortKey=key;render()}));
-window.addEventListener('resize',fitRomajiNames);
+document.querySelectorAll('.filter-trigger').forEach(button=>button.addEventListener('click',event=>{event.stopPropagation();openFilterMenu(button)}));
+document.querySelector('#filter-value-search').addEventListener('input',renderFilterOptions);
+document.querySelector('#filter-all').addEventListener('click',()=>{menuSelection=new Set(columnValues(menuKey));renderFilterOptions()});
+document.querySelector('#filter-clear').addEventListener('click',()=>{menuSelection.clear();renderFilterOptions()});
+document.querySelector('#filter-cancel').addEventListener('click',closeFilterMenu);
+document.querySelector('#filter-apply').addEventListener('click',()=>{const values=columnValues(menuKey);if(menuSelection.size===values.length)activeFilters.delete(menuKey);else activeFilters.set(menuKey,new Set(menuSelection));closeFilterMenu();render()});
+document.querySelectorAll('[data-menu-sort]').forEach(button=>button.addEventListener('click',()=>{sortKey=menuKey;sortDirection=Number(button.dataset.menuSort);closeFilterMenu();render()}));
+document.addEventListener('click',event=>{const menu=document.querySelector('#filter-menu');if(!menu.hidden&&!menu.contains(event.target)&&!event.target.closest('.filter-trigger'))closeFilterMenu()});
+document.addEventListener('keydown',event=>{if(event.key==='Escape')closeFilterMenu()});
+window.addEventListener('resize',()=>{fitRomajiNames();closeFilterMenu()});
 loadCandidates();
 </script>
 </body>
