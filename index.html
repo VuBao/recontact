@@ -26,7 +26,8 @@
   <section class="bar">
     <div class="filter-controls">
       <input id="search" class="search" placeholder="Tìm theo tên, SĐT hoặc email">
-      <input id="upload-role" class="search role-input" placeholder="Phân loại vị trí" aria-label="Phân loại vị trí cho CV tải lên" required>
+      <select id="upload-role" class="search role-input" aria-label="Phân loại vị trí cho CV tải lên" required><option value="">Chọn vị trí…</option></select>
+      <input id="upload-role-new" class="search role-input" placeholder="Nhập tên vị trí mới" aria-label="Tên vị trí mới" hidden>
       <select id="visa-filter" class="filter-select" aria-label="Lọc theo visa"><option value="">Visa: Tất cả</option></select>
       <select id="japanese-filter" class="filter-select" aria-label="Lọc theo tiếng Nhật"><option value="">Tiếng Nhật: Tất cả</option></select>
     </div>
@@ -106,7 +107,7 @@
 </main>
 
 <script>
-let candidates=[],sortKey='',sortDirection=1,activeFilters=new Map(),menuKey='',menuSelection=new Set(),selectedIds=new Set(),visibleIds=[],page=1;
+let candidates=[],sortKey='',sortDirection=1,activeFilters=new Map(),menuKey='',menuSelection=new Set(),selectedIds=new Set(),visibleIds=[],page=1,jobs=[];
 let mailSelectedIds=[],mailPreviewItems=[],mailPreviewIndex=0,mailPreviewStale=true,mailSending=false,mailIdempotencyKey='',mailLastResult=null,mailTrigger=null;
 
 // <list-view>
@@ -133,6 +134,32 @@ function summarizeSendResult(result){
   return failed?{message:`Đã gửi ${sent} email, ${failed} email thất bại.`,type:'error'}:{message:`Đã gửi thành công ${sent} email.`,type:'ok'};
 }
 // </mail-ui>
+
+// <role-select>
+function roleTitleKey(value){return String(value||'').normalize('NFKC').trim().replace(/\s+/g,' ').toLowerCase()}
+function matchJobByTitle(title){const key=roleTitleKey(title);return jobs.find(job=>roleTitleKey(job.title)===key)}
+function renderJobOptions(){
+  const select=document.querySelector('#upload-role'),current=select.value;
+  const sorted=[...jobs].sort((a,b)=>a.title.localeCompare(b.title,'vi',{numeric:true,sensitivity:'base'}));
+  select.replaceChildren(new Option('Chọn vị trí…',''),...sorted.map(job=>new Option(job.title,job.id)),new Option('+ Thêm vị trí mới…','__new__'));
+  if([...select.options].some(option=>option.value===current))select.value=current;
+}
+async function loadJobs(){
+  try{jobs=(await api('/api/jobs')).filter(job=>job.status==='OPEN')}catch{jobs=[]}
+  renderJobOptions();
+}
+function selectedRoleTitle(){
+  const select=document.querySelector('#upload-role');
+  if(select.value==='__new__')return document.querySelector('#upload-role-new').value.trim();
+  return jobs.find(job=>job.id===select.value)?.title||'';
+}
+function syncRoleSelection(title){
+  const match=matchJobByTitle(title);
+  document.querySelector('#upload-role').value=match?match.id:'';
+  document.querySelector('#upload-role-new').hidden=true;
+  document.querySelector('#upload-role-new').value='';
+}
+// </role-select>
 
 function escapeHtml(value){return String(value??'').replace(/[&<>'"]/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[char]))}
 function setStatus(message,type=''){const element=document.querySelector('#status');element.textContent=message;element.className='status '+type}
@@ -378,20 +405,29 @@ async function sendMailBatch(){
 async function uploadFiles(files){
   const pdfs=[...files].filter(file=>/\.pdf$/i.test(file.name));
   if(!pdfs.length){setStatus('Vui lòng chọn file PDF.','error');return}
-  const roleTitle=document.querySelector('#upload-role').value.trim();
-  if(!roleTitle){setStatus('Vui lòng nhập phân loại vị trí trước khi tải CV.','error');document.querySelector('#upload-role').focus();document.querySelector('#files').value='';return}
+  const roleSelect=document.querySelector('#upload-role'),roleTitle=selectedRoleTitle();
+  if(!roleTitle){
+    const isNew=roleSelect.value==='__new__';
+    setStatus(isNew?'Vui lòng nhập tên vị trí mới trước khi tải CV.':'Vui lòng chọn phân loại vị trí trước khi tải CV.','error');
+    document.querySelector(isNew?'#upload-role-new':'#upload-role').focus();document.querySelector('#files').value='';return;
+  }
   let completed=0,failed=0;
   for(const file of pdfs){
     setStatus(`Đang đọc ${completed+failed+1}/${pdfs.length}: ${file.name}`);
     try{const form=new FormData();form.append('file',file);form.append('role_title',roleTitle);await api('/api/import',{method:'POST',body:form});completed++}
     catch(error){failed++;setStatus(`${file.name}: ${error.message}`,'error')}
   }
-  await loadCandidates();
+  await Promise.all([loadCandidates(),loadJobs()]);
+  if(completed)syncRoleSelection(roleTitle);
   setStatus(`Hoàn tất ${completed} hồ sơ${failed?`, ${failed} hồ sơ lỗi`:''}.`,failed?'error':'ok');
   document.querySelector('#files').value='';
 }
 
 document.querySelector('#files').addEventListener('change',event=>uploadFiles(event.target.files));
+document.querySelector('#upload-role').addEventListener('change',()=>{
+  const isNew=document.querySelector('#upload-role').value==='__new__',input=document.querySelector('#upload-role-new');
+  input.hidden=!isNew;if(isNew)input.focus();else input.value='';
+});
 document.querySelector('#search').addEventListener('input',()=>{page=1;render()});
 document.querySelector('#candidate-list').addEventListener('change',event=>{if(!event.target.classList.contains('row-select'))return;event.target.checked?selectedIds.add(event.target.dataset.id):selectedIds.delete(event.target.dataset.id);updateSelectionUI()});
 document.querySelector('#select-all').addEventListener('change',event=>{visibleIds.forEach(id=>event.target.checked?selectedIds.add(id):selectedIds.delete(id));render()});
@@ -425,6 +461,7 @@ document.addEventListener('click',event=>{const menu=document.querySelector('#fi
 document.addEventListener('keydown',event=>{if(event.key==='Escape')closeFilterMenu()});
 window.addEventListener('resize',()=>{fitRomajiNames();closeFilterMenu()});
 loadCandidates();
+loadJobs();
 </script>
 </body>
 </html>
