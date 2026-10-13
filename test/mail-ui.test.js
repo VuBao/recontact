@@ -40,10 +40,28 @@ test("compose flow uses documented preview and multipart send endpoints", () => 
   assert.match(html, /crypto\.randomUUID\(\)/);
 });
 
-test("CV upload requires and submits one role classification", () => {
-  assert.match(html, /id="upload-role"[^>]*required/);
+test("CV upload requires selecting one role classification from a select box", () => {
+  assert.match(html, /<select id="upload-role"[^>]*required>/);
+  assert.match(html, /id="upload-role-new"[^>]*hidden>/);
   assert.match(html, /form\.append\('role_title',roleTitle\)/);
-  assert.match(html, /Vui lòng nhập phân loại vị trí trước khi tải CV/);
+  assert.match(html, /Vui lòng chọn phân loại vị trí trước khi tải CV/);
+  assert.match(html, /Vui lòng nhập tên vị trí mới trước khi tải CV/);
+});
+
+test("role select helpers resolve the chosen job or a freshly typed one", () => {
+  const block = html.match(/\/\/ <role-select>([\s\S]*?)\/\/ <\/role-select>/)?.[1];
+  assert.ok(block, "missing role-select helper block");
+  const { roleTitleKey, matchJobByTitle } = new Function(
+    `let jobs=[{id:'job-1',title:'ホテル  スタッフ'},{id:'job-2',title:'Line cook'}];${block}; return { roleTitleKey, matchJobByTitle };`
+  )();
+
+  assert.equal(roleTitleKey('  Hotel   Staff \u3000'), 'hotel staff');
+  assert.deepEqual(matchJobByTitle('ホテル\u3000スタッフ'), { id: 'job-1', title: 'ホテル  スタッフ' });
+  assert.equal(matchJobByTitle('No such role'), undefined);
+});
+
+test("uploadFiles keeps the select on the new-role option when every file in the batch fails", () => {
+  assert.match(html, /if\(completed\)syncRoleSelection\(roleTitle\)/, "a wholly failed batch must not overwrite the just-typed role name");
 });
 
 test("mail dialog includes mobile no-overflow safeguards", () => {
