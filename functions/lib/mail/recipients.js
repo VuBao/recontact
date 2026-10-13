@@ -1,6 +1,13 @@
-import { renderCandidateEmail } from "./templates.js";
+import { renderCandidateEmail } from "./template.js";
 
-export const MAX_RECIPIENTS = 100;
+export const MAX_RECIPIENTS = 20;
+
+function requestError(message, code = "INVALID_REQUEST") {
+  const error = new Error(message);
+  error.status = 400;
+  error.code = code;
+  return error;
+}
 
 export function isValidEmail(email) {
   if (!email || typeof email !== "string") return false;
@@ -9,77 +16,92 @@ export function isValidEmail(email) {
   return /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)+$/.test(trimmed);
 }
 
-export async function resolveRecipients(db, candidateIds, companyName) {
+export async function resolveRecipients(db, candidateIds, companyName, jobParagraph = null) {
   if (!Array.isArray(candidateIds) || candidateIds.length === 0) {
-    throw new Error("candidate_ids must be a non-empty array.");
-  }
-  if (candidateIds.length > MAX_RECIPIENTS) {
-    throw new Error(`Exceeded maximum limit of ${MAX_RECIPIENTS} candidates per batch.`);
-  }
-  if (!companyName || typeof companyName !== "string" || !companyName.trim()) {
-    throw new Error("company_name is required.");
+    throw requestError("candidate_ids must be a non-empty array.");
   }
 
-  // Deduplicate preserving order
-  const orderedIds = [...new Set(candidateIds.map(id => String(id || "").trim()).filter(Boolean))];
-  if (!orderedIds.length) {
-    throw new Error("No valid candidate IDs provided.");
+  const orderedIds = [...new Set(candidateIds.map(id => String(id ?? "").trim()).filter(Boolean))];
+  if (!orderedIds.length) throw requestError("No valid candidate IDs provided.");
+  if (orderedIds.length > MAX_RECIPIENTS) {
+    throw requestError(`Each batch is limited to ${MAX_RECIPIENTS} candidates.`, "BATCH_LIMIT_EXCEEDED");
+  }
+  if (typeof companyName !== "string" || !companyName.trim()) {
+    throw requestError("company_name is required.", "COMPANY_MISSING");
   }
 
   const placeholders = orderedIds.map(() => "?").join(",");
-  const query = `
-    SELECT id, full_name, age, email, phone, current_visa, japanese_level, labels_json
-    FROM candidates
-    WHERE id IN (${placeholders})
-  `;
-  const result = await db.prepare(query).bind(...orderedIds).all();
-  const rows = result.results || [];
-  const candidateMap = new Map(rows.map(row => [row.id, row]));
+  const result = await db.prepare(`
+    SELECT
+      c.id,
+      c.full_name,
+      c.email,
+      j.id AS role_id,
+      j.title AS role_title
+    FROM candidates c
+    LEFT JOIN job_candidates jc ON jc.candidate_id = c.id
+    LEFT JOIN jobs j ON j.id = jc.job_id AND j.status = 'OPEN'
+    WHERE c.id IN (${placeholders})
+    ORDER BY c.id, j.created_at, j.id
+  `).bind(...orderedIds).all();
 
-  // Verify all IDs exist in D1
-  const missingIds = orderedIds.filter(id => !candidateMap.has(id));
-  if (missingIds.length > 0) {
-    const error = new Error(`Unknown candidate IDs: ${missingIds.join(", ")}`);
-    error.status = 400;
-    throw error;
+  const grouped = new Map();
+  for (const row of result.results ?? []) {
+    let candidate = grouped.get(row.id);
+    if (!candidate) {
+      candidate = {
+        id: row.id,
+        full_name: row.full_name,
+        email: row.email,
+        roles: new Map()
+      };
+      grouped.set(row.id, candidate);
+    }
+    if (row.role_id && row.role_title) candidate.roles.set(row.role_id, row.role_title);
   }
 
-  const ready = [];
-  const unresolvable = [];
+  const missingIds = orderedIds.filter(id => !grouped.has(id));
+  if (missingIds.length) throw requestError(`Unknown candidate IDs: ${missingIds.join(", ")}`);
 
-  for (const id of orderedIds) {
-    const candidate = candidateMap.get(id);
-    const email = (candidate.email || "").trim();
-
-    if (!email) {
-      unresolvable.push({
-        candidate_id: id,
-        name: candidate.full_name,
-        reason: "missing_email"
-      });
-      continue;
-    }
-
-    if (!isValidEmail(email)) {
-      unresolvable.push({
-        candidate_id: id,
-        name: candidate.full_name,
-        reason: "invalid_email"
-      });
-      continue;
-    }
-
-    const rendered = renderCandidateEmail({ candidate, companyName });
-    ready.push({
-      candidate_id: id,
-      name: candidate.full_name,
+  const items = orderedIds.map(candidateId => {
+    const candidate = grouped.get(candidateId);
+    const candidateName = String(candidate.full_name ?? "").trim();
+    const email = String(candidate.email ?? "").trim();
+    const roleTitles = [...candidate.roles.values()];
+    const base = {
+      candidate_id: candidateId,
+      candidate_name: candidateName,
       email,
-      role: rendered.role,
-      subject: rendered.subject,
-      text: rendered.text,
-      html: rendered.html
-    });
-  }
+      role_title: roleTitles.length === 1 ? roleTitles[0] : null,
+      subject: null,
+      body_text: null,
+      status: "BLOCKED",
+      error_code: null
+    };
 
-  return { ready, unresolvable };
+    if (!email) return { ...base, error_code: "EMAIL_MISSING" };
+    if (!isValidEmail(email)) return { ...base, error_code: "EMAIL_INVALID" };
+    if (roleTitles.length === 0) return { ...base, error_code: "ROLE_MISSING" };
+    if (roleTitles.length > 1) return { ...base, error_code: "ROLE_AMBIGUOUS" };
+
+    const rendered = renderCandidateEmail({
+      candidateName,
+      companyName: companyName.trim(),
+      roleTitle: roleTitles[0],
+      jobParagraph
+    });
+    return {
+      ...base,
+      role_title: roleTitles[0],
+      subject: rendered.subject,
+      body_text: rendered.bodyText,
+      status: "READY"
+    };
+  });
+
+  return {
+    items,
+    eligible: items.filter(item => item.status === "READY").length,
+    blocked: items.filter(item => item.status !== "READY").length
+  };
 }

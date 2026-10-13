@@ -1,53 +1,45 @@
 import { authorized } from "../lib/auth.js";
-import { resolveRecipients } from "../lib/mail/recipients.js";
 import { validateAttachments } from "../lib/mail/attachments.js";
 import {
   createBatch,
+  finalizeBatch,
   getBatchByIdempotencyKey,
   getBatchDeliveries,
   insertDeliveries,
-  updateDelivery,
-  finalizeBatch
+  updateDelivery
 } from "../lib/mail/batches.js";
-import { sendEmail } from "../lib/mail/provider.js";
+import { MailProviderError } from "../lib/mail/errors.js";
+import { createMailProvider } from "../lib/mail/provider.js";
+import { resolveRecipients } from "../lib/mail/recipients.js";
 
 const CONCURRENCY_LIMIT = 3;
+const MAX_RETRIES = 2;
 
-function sanitizeError(err) {
-  if (!err) return "Unknown delivery error.";
-  const raw = String(err.message || err || "")
-    .replace(/bearer\s+[a-z0-9._-]+/gi, "bearer [REDACTED]")
-    .replace(/api[_-]?key[:=]\s*[^\s]+/gi, "api_key=[REDACTED]");
-
-  if (err.status === 429 || raw.includes("429") || /rate limit/i.test(raw)) {
-    return "Provider rate limit exceeded.";
-  }
-  if (err.status >= 500 || /server error|service unavailable/i.test(raw)) {
-    return "Temporary mail provider service error.";
-  }
-  return raw.slice(0, 200);
+function jsonError(message, status, errorCode = "INVALID_REQUEST", extra = {}) {
+  return Response.json({ error: message, error_code: errorCode, ...extra }, { status });
 }
 
-function isRetryable(err) {
-  if (!err) return false;
-  if (err.status === 429 || (err.status >= 500 && err.status < 600)) return true;
-  const code = err.code || "";
-  if (code === "ECONNRESET" || code === "ETIMEDOUT" || code === "EAI_AGAIN") return true;
-  return false;
+function safeDeliveryError(error) {
+  if (error instanceof MailProviderError) {
+    return { code: error.code, message: error.message };
+  }
+  return { code: "UNKNOWN_SEND_ERROR", message: "Mail delivery failed." };
 }
 
-async function sendWithRetry(env, payload, maxRetries = 2) {
+function isRetryable(error) {
+  const status = Number(error?.httpStatus ?? error?.status);
+  return status === 429 || (status >= 500 && status < 600);
+}
+
+async function sendWithRetry(provider, message) {
   let attempt = 0;
   while (true) {
     try {
-      return await sendEmail(env, payload);
-    } catch (err) {
-      attempt++;
-      if (!isRetryable(err) || attempt > maxRetries) {
-        throw err;
-      }
-      // Exponential / fixed small backoff
-      await new Promise(res => setTimeout(res, attempt * 50));
+      return await provider.send(message);
+    } catch (error) {
+      if (!isRetryable(error) || attempt >= MAX_RETRIES) throw error;
+      attempt += 1;
+      await new Promise(resolve => setTimeout(resolve, attempt * 50));
     }
   }
 }
@@ -57,230 +49,230 @@ async function mapConcurrent(items, limit, fn) {
   let nextIndex = 0;
   const workers = Array.from({ length: Math.min(limit, items.length) }, async () => {
     while (nextIndex < items.length) {
-      const idx = nextIndex++;
-      results[idx] = await fn(items[idx], idx);
+      const index = nextIndex++;
+      results[index] = await fn(items[index]);
     }
   });
   await Promise.all(workers);
   return results;
 }
 
+function bytesToHex(bytes) {
+  return [...new Uint8Array(bytes)].map(value => value.toString(16).padStart(2, "0")).join("");
+}
+
+async function sha256(value) {
+  const bytes = typeof value === "string" ? new TextEncoder().encode(value) : value;
+  return bytesToHex(await crypto.subtle.digest("SHA-256", bytes));
+}
+
+async function requestFingerprint(payload, attachments) {
+  const attachmentDescriptors = [];
+  for (const attachment of attachments) {
+    attachmentDescriptors.push({
+      filename: attachment.filename,
+      content_type: attachment.contentType,
+      size: attachment.bytes.byteLength,
+      sha256: await sha256(attachment.bytes)
+    });
+  }
+  return sha256(JSON.stringify({
+    candidate_ids: [...new Set(payload.candidate_ids.map(id => String(id ?? "").trim()).filter(Boolean))],
+    company_name: String(payload.company_name ?? "").trim(),
+    job_paragraph: payload.job_paragraph == null ? null : String(payload.job_paragraph).trim(),
+    attachments: attachmentDescriptors
+  }));
+}
+
+function storedResponse(batch, deliveries) {
+  return {
+    batch_id: batch.id,
+    status: batch.status,
+    sent: batch.sent_count,
+    failed: batch.failed_count,
+    results: deliveries.map(delivery => ({
+      candidate_id: delivery.candidate_id,
+      status: delivery.status,
+      provider_message_id: delivery.provider_message_id || null,
+      error_code: delivery.error_code || null,
+      error_message: delivery.error_message || null
+    }))
+  };
+}
+
 export async function onRequestPost(context) {
   if (!(await authorized(context.request, context.env))) {
     return new Response("Unauthorized", { status: 401 });
   }
-  if (!context.env.DB) {
-    return Response.json({ error: "D1 binding DB is not configured." }, { status: 503 });
-  }
+  if (!context.env.DB) return jsonError("D1 binding DB is not configured.", 503, "DB_NOT_CONFIGURED");
 
   let formData;
   try {
     formData = await context.request.formData();
   } catch {
-    return Response.json({ error: "Multipart form data is required." }, { status: 400 });
+    return jsonError("Multipart form data is required.", 400);
   }
 
-  const idempotencyKey = String(formData.get("idempotency_key") || "").trim();
-  if (!idempotencyKey) {
-    return Response.json({ error: "idempotency_key is required." }, { status: 400 });
-  }
-
-  const companyName = String(formData.get("company_name") || "").trim();
-  if (!companyName) {
-    return Response.json({ error: "company_name is required." }, { status: 400 });
-  }
-
-  // Parse candidate_ids
-  let candidateIds = [];
-  const candidateIdsRaw = formData.get("candidate_ids");
-  if (typeof candidateIdsRaw === "string" && candidateIdsRaw.startsWith("[")) {
-    try {
-      candidateIds = JSON.parse(candidateIdsRaw);
-    } catch {
-      return Response.json({ error: "candidate_ids must be a valid JSON array." }, { status: 400 });
-    }
-  } else {
-    candidateIds = formData.getAll("candidate_ids").filter(Boolean);
-  }
-
-  if (!Array.isArray(candidateIds) || !candidateIds.length) {
-    return Response.json({ error: "candidate_ids must be a non-empty array." }, { status: 400 });
-  }
-
-  // Validate attachments
-  let attachments = [];
+  let payload;
   try {
-    const rawFiles = formData.getAll("attachments").filter(item => item instanceof File && item.size > 0);
-    attachments = await validateAttachments(rawFiles);
-  } catch (err) {
-    return Response.json({ error: err.message }, { status: 400 });
+    const raw = formData.get("payload");
+    if (typeof raw !== "string") throw new Error();
+    payload = JSON.parse(raw);
+  } catch {
+    return jsonError("payload must be valid JSON.", 400);
   }
 
-  // Idempotency check
+  const idempotencyKey = String(payload.idempotency_key ?? "").trim();
+  if (!idempotencyKey) return jsonError("idempotency_key is required.", 400);
+  if (!Array.isArray(payload.candidate_ids) || !payload.candidate_ids.length) {
+    return jsonError("candidate_ids must be a non-empty array.", 400);
+  }
+
+  let attachments;
+  try {
+    const files = formData.getAll("attachments").filter(item => item instanceof File && item.size > 0);
+    attachments = await validateAttachments(files);
+  } catch (error) {
+    return jsonError(error.message, 400, "ATTACHMENT_INVALID");
+  }
+
+  let fingerprint;
+  try {
+    fingerprint = await requestFingerprint(payload, attachments);
+  } catch {
+    return jsonError("Unable to validate the request payload.", 400);
+  }
+
   const existingBatch = await getBatchByIdempotencyKey(context.env.DB, idempotencyKey);
   if (existingBatch) {
-    // If different payload: conflict
-    if (
-      existingBatch.company_name !== companyName ||
-      existingBatch.total_count !== candidateIds.length
-    ) {
-      return Response.json(
-        { error: "Conflicting payload with existing idempotency key." },
-        { status: 409 }
-      );
+    if (existingBatch.request_fingerprint !== fingerprint) {
+      return jsonError("Conflicting payload with existing idempotency key.", 409, "IDEMPOTENCY_CONFLICT");
     }
-
     if (existingBatch.status === "PROCESSING") {
-      return Response.json({ error: "Batch is currently processing." }, { status: 409 });
+      return jsonError("Batch is currently processing.", 409, "BATCH_IN_PROGRESS");
     }
-
-    // Return stored results immediately
     const deliveries = await getBatchDeliveries(context.env.DB, existingBatch.id);
-    const statusCode = existingBatch.failed_count > 0 ? 207 : 200;
-    return Response.json(
-      {
-        batch_id: existingBatch.id,
-        idempotency_key: existingBatch.idempotency_key,
-        status: existingBatch.status,
-        total: existingBatch.total_count,
-        sent: existingBatch.sent_count,
-        failed: existingBatch.failed_count,
-        deliveries: deliveries.map(d => ({
-          candidate_id: d.candidate_id,
-          recipient_email: d.recipient_email,
-          status: d.status,
-          error: d.error_message || undefined
-        }))
-      },
-      { status: statusCode }
+    return Response.json(storedResponse(existingBatch, deliveries), {
+      status: existingBatch.failed_count > 0 ? 207 : 200
+    });
+  }
+
+  let resolved;
+  try {
+    resolved = await resolveRecipients(
+      context.env.DB,
+      payload.candidate_ids,
+      payload.company_name,
+      payload.job_paragraph ?? null
+    );
+  } catch (error) {
+    return jsonError(error.message, error.status || 400, error.code || "INVALID_REQUEST");
+  }
+  if (resolved.blocked > 0) {
+    return jsonError(
+      "All candidates must have a valid email and exactly one open role before sending.",
+      400,
+      "RECIPIENTS_BLOCKED",
+      { items: resolved.items }
     );
   }
 
-  // Authoritatively re-resolve candidates from D1
-  let resolved;
+  let provider;
   try {
-    resolved = await resolveRecipients(context.env.DB, candidateIds, companyName);
-  } catch (err) {
-    const status = err.status || 400;
-    return Response.json({ error: err.message }, { status });
+    provider = context.data?.mailProvider || createMailProvider(context.env);
+  } catch (error) {
+    const safe = safeDeliveryError(error);
+    return jsonError(safe.message, error.httpStatus || 503, safe.code);
   }
 
-  const { ready, unresolvable } = resolved;
+  const providerName = String(context.env.MAIL_PROVIDER || "gmail").trim().toLowerCase();
   const batchId = crypto.randomUUID();
-
-  // Create audit batch row
-  await createBatch(context.env.DB, {
-    id: batchId,
-    idempotencyKey,
-    companyName,
-    totalCount: candidateIds.length
-  });
-
-  // Prepare deliveries
-  const deliveryItems = [];
-  for (const c of ready) {
-    deliveryItems.push({
-      id: crypto.randomUUID(),
-      candidate_id: c.candidate_id,
-      recipient_email: c.email,
-      recipient_name: c.name,
-      _candidate: c
+  try {
+    await createBatch(context.env.DB, {
+      id: batchId,
+      idempotencyKey,
+      requestFingerprint: fingerprint,
+      provider: providerName,
+      companyName: String(payload.company_name).trim(),
+      attachmentNames: attachments.map(attachment => attachment.filename),
+      requestedCount: resolved.items.length
     });
-  }
-  for (const u of unresolvable) {
-    deliveryItems.push({
-      id: crypto.randomUUID(),
-      candidate_id: u.candidate_id,
-      recipient_email: "",
-      recipient_name: u.name || "Unknown",
-      _unresolvableReason: u.reason
-    });
-  }
-
-  await insertDeliveries(
-    context.env.DB,
-    batchId,
-    deliveryItems.map(({ id, candidate_id, recipient_email, recipient_name }) => ({
-      id,
-      candidate_id,
-      recipient_email,
-      recipient_name
-    }))
-  );
-
-  // Send orchestration with bounded concurrency = 3
-  const outcomes = await mapConcurrent(deliveryItems, CONCURRENCY_LIMIT, async item => {
-    if (item._unresolvableReason) {
-      const safeErr = `Candidate email could not be resolved (${item._unresolvableReason}).`;
-      await updateDelivery(context.env.DB, item.id, {
-        status: "FAILED",
-        errorMessage: safeErr
-      });
-      return {
-        candidate_id: item.candidate_id,
-        status: "FAILED",
-        error: safeErr
-      };
+  } catch {
+    const concurrentBatch = await getBatchByIdempotencyKey(context.env.DB, idempotencyKey);
+    if (concurrentBatch?.request_fingerprint === fingerprint) {
+      return jsonError("Batch is currently processing.", 409, "BATCH_IN_PROGRESS");
     }
+    if (concurrentBatch) {
+      return jsonError("Conflicting payload with existing idempotency key.", 409, "IDEMPOTENCY_CONFLICT");
+    }
+    return jsonError("Unable to create the mail batch.", 500, "BATCH_CREATE_FAILED");
+  }
 
+  const deliveries = resolved.items.map(item => ({
+    id: crypto.randomUUID(),
+    candidate_id: item.candidate_id,
+    recipient_email: item.email,
+    candidate_name: item.candidate_name,
+    role_title: item.role_title,
+    subject: item.subject,
+    body_text: item.body_text
+  }));
+  await insertDeliveries(context.env.DB, batchId, deliveries);
+
+  const outcomes = await mapConcurrent(deliveries, CONCURRENCY_LIMIT, async delivery => {
     try {
-      const res = await sendWithRetry(context.env, {
-        to: item.recipient_email,
-        toName: item.recipient_name,
-        subject: item._candidate.subject,
-        text: item._candidate.text,
-        html: item._candidate.html,
+      const providerResult = await sendWithRetry(provider, {
+        from: {
+          email: context.env.MAIL_FROM_EMAIL,
+          name: context.env.MAIL_FROM_NAME
+        },
+        to: {
+          email: delivery.recipient_email,
+          name: delivery.candidate_name
+        },
+        subject: delivery.subject,
+        text: delivery.body_text,
         attachments
       });
-
-      await updateDelivery(context.env.DB, item.id, {
+      const providerMessageId = providerResult?.messageId || null;
+      await updateDelivery(context.env.DB, delivery.id, {
         status: "SENT",
-        sentAt: new Date().toISOString(),
-        providerMessageId: res?.id || `msg-${Date.now()}`
+        providerMessageId,
+        sentAt: new Date().toISOString()
       });
-
       return {
-        candidate_id: item.candidate_id,
-        recipient_email: item.recipient_email,
-        status: "SENT"
+        candidate_id: delivery.candidate_id,
+        status: "SENT",
+        provider_message_id: providerMessageId,
+        error_code: null
       };
-    } catch (err) {
-      const safeErr = sanitizeError(err);
-      await updateDelivery(context.env.DB, item.id, {
+    } catch (error) {
+      const safe = safeDeliveryError(error);
+      await updateDelivery(context.env.DB, delivery.id, {
         status: "FAILED",
-        errorMessage: safeErr
+        errorCode: safe.code,
+        errorMessage: safe.message
       });
-
       return {
-        candidate_id: item.candidate_id,
-        recipient_email: item.recipient_email,
+        candidate_id: delivery.candidate_id,
         status: "FAILED",
-        error: safeErr
+        provider_message_id: null,
+        error_code: safe.code,
+        error_message: safe.message
       };
     }
   });
 
-  const sentCount = outcomes.filter(o => o.status === "SENT").length;
-  const failedCount = outcomes.filter(o => o.status === "FAILED").length;
-  const batchStatus = failedCount === 0 ? "COMPLETED" : sentCount === 0 ? "FAILED" : "PARTIAL_FAILURE";
+  const sentCount = outcomes.filter(outcome => outcome.status === "SENT").length;
+  const failedCount = outcomes.length - sentCount;
+  const status = failedCount === 0 ? "COMPLETED" : sentCount === 0 ? "FAILED" : "PARTIAL_FAILURE";
+  await finalizeBatch(context.env.DB, batchId, { status, sentCount, failedCount });
 
-  await finalizeBatch(context.env.DB, batchId, {
-    status: batchStatus,
-    sentCount,
-    failedCount
-  });
-
-  const statusCode = failedCount > 0 ? 207 : 200;
-  return Response.json(
-    {
-      batch_id: batchId,
-      idempotency_key: idempotencyKey,
-      status: batchStatus,
-      total: candidateIds.length,
-      sent: sentCount,
-      failed: failedCount,
-      deliveries: outcomes
-    },
-    { status: statusCode }
-  );
+  return Response.json({
+    batch_id: batchId,
+    status,
+    sent: sentCount,
+    failed: failedCount,
+    results: outcomes
+  }, { status: failedCount > 0 ? 207 : 200 });
 }

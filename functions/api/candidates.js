@@ -4,9 +4,28 @@ export async function onRequestGet(context) {
   if (!(await authorized(context.request, context.env))) return new Response("Unauthorized", { status: 401 });
   if (!context.env.DB) return Response.json({ error: "D1 binding DB is not configured." }, { status: 503 });
   const result = await context.env.DB.prepare(
-    "SELECT id, full_name, age, email, phone, current_visa, japanese_level, file_name, created_at FROM candidates ORDER BY created_at DESC"
+    `SELECT c.id, c.full_name, c.age, c.email, c.phone, c.current_visa, c.japanese_level,
+            c.file_name, c.created_at,
+            COUNT(DISTINCT CASE WHEN j.status = 'OPEN' THEN j.id END) AS role_count,
+            MIN(CASE WHEN j.status = 'OPEN' THEN j.id END) AS role_id_value,
+            MIN(CASE WHEN j.status = 'OPEN' THEN j.title END) AS role_title_value
+       FROM candidates c
+       LEFT JOIN job_candidates jc ON jc.candidate_id = c.id
+       LEFT JOIN jobs j ON j.id = jc.job_id
+      GROUP BY c.id
+      ORDER BY c.created_at DESC`
   ).all();
-  return Response.json(result.results);
+  return Response.json((result.results || []).map((row) => {
+    const { role_count: roleCountValue, role_id_value: roleIdValue, role_title_value: roleTitleValue, ...candidate } = row;
+    const roleCount = Number(roleCountValue || 0);
+    if (roleCount === 1) return { ...candidate, role_id: roleIdValue, role_title: roleTitleValue, role_status: "READY" };
+    return {
+      ...candidate,
+      role_id: null,
+      role_title: null,
+      role_status: roleCount === 0 ? "ROLE_MISSING" : "ROLE_AMBIGUOUS"
+    };
+  }));
 }
 export async function onRequestPost(context) {
   if (!(await authorized(context.request, context.env))) return new Response("Unauthorized", { status: 401 });

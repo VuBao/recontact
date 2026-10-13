@@ -68,6 +68,14 @@ Add the following as **Encrypted Secrets**:
 | `GMAIL_CLIENT_SECRET` | OAuth Client Secret | `GOCSPX-xxxx` |
 | `GMAIL_REFRESH_TOKEN` | Refresh token generated in step 2 | `1//04xxxx` |
 
+Also add these non-secret production variables:
+
+| Variable | Value |
+|---|---|
+| `MAIL_PROVIDER` | `gmail` |
+| `MAIL_FROM_EMAIL` | The shared company mailbox used to authorize Gmail |
+| `MAIL_FROM_NAME` | `株式会社K-ANH人材紹介` (or the approved sender name) |
+
 ### Local Development / Preview
 In `.dev.vars` (which is excluded by `.gitignore`):
 
@@ -75,7 +83,9 @@ In `.dev.vars` (which is excluded by `.gitignore`):
 GMAIL_CLIENT_ID=your_local_client_id.apps.googleusercontent.com
 GMAIL_CLIENT_SECRET=your_local_client_secret
 GMAIL_REFRESH_TOKEN=your_refresh_token
-ENVIRONMENT=local
+MAIL_PROVIDER=gmail
+MAIL_FROM_EMAIL=recruit@example.com
+MAIL_FROM_NAME=株式会社K-ANH人材紹介
 ```
 
 ---
@@ -105,3 +115,4 @@ ENVIRONMENT=local
 - [x] **Separate To headers**: Each email is sent individually per candidate to prevent cross-candidate PII leakage.
 - [x] **Idempotency enforcement**: Repeated calls with the same `idempotency_key` return stored audit results and do not re-contact candidates.
 - [x] **Zero real candidate emails in testing**: All automated and dry-run tests use `@example.test` or dedicated test company inboxes.
+- [ ] **Controlled live test**: Before production use, send only to two approved internal mailboxes and manually verify the Japanese body and selected PDF attachment.
