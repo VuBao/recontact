@@ -51,3 +51,7 @@ test("mail dialog includes mobile no-overflow safeguards", () => {
   assert.match(html, /@media\(max-width:720px\)[^{]*\{[\s\S]*?\.mail-dialog/);
   assert.match(html, /overflow-wrap:anywhere/);
 });
+
+test("dashboard links to the public privacy policy required by OAuth branding", () => {
+  assert.match(html, /href="\/privacy\.html"/);
+});
