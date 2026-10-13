@@ -3,3 +3,6 @@
 node_modules/
 .venv/
 __pycache__/
+tools/role-folder-map.json
+tools/role-backfill-report*.json
+tools/candidate-hashes.json

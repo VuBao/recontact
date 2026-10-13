@@ -44,6 +44,7 @@ class FakeDB {
             throw new Error(`Unhandled all query: ${sql}`);
           },
           async first() {
+            if (sql.includes("FROM jobs") && sql.includes("title_key")) return db.jobs.find(item => item.title_key === params[0] && item.status === "OPEN") || null;
             if (sql.includes("SELECT id FROM jobs")) return db.jobs.find(item => item.id === params[0]) || null;
             if (sql.includes("SELECT id FROM candidates")) return db.candidates.find(item => item.id === params[0]) || null;
             if (sql.includes("WHERE job_id = ? AND candidate_id = ?")) return db.assignments.find(item => item.job_id === params[0] && item.candidate_id === params[1]) || null;
@@ -51,8 +52,19 @@ class FakeDB {
             throw new Error(`Unhandled first query: ${sql}`);
           },
           async run() {
+            if (sql.includes("INSERT OR IGNORE INTO jobs")) {
+              if (!db.jobs.some(item => item.title_key === params[2] && item.status === "OPEN")) {
+                db.jobs.push({ id: params[0], title: params[1], title_key: params[2], location: null, status: "OPEN", created_at: "now" });
+              }
+              return;
+            }
             if (sql.includes("INSERT INTO jobs")) {
-              db.jobs.push({ id: params[0], title: params[1], location: params[2], status: "OPEN", created_at: "now" });
+              db.jobs.push({ id: params[0], title: params[1], title_key: params[2], location: params[3], status: "OPEN", created_at: "now" });
+              return;
+            }
+            if (sql.includes("UPDATE jobs SET location")) {
+              const job = db.jobs.find(item => item.id === params[1]);
+              job.location = params[0];
               return;
             }
             if (sql.includes("INSERT OR IGNORE INTO job_candidates")) {
@@ -183,6 +195,7 @@ test("extracts the requested CV fields and saves the private PDF", async () => {
   let savedParams;
   let uploadedKey;
   let requestBody;
+  const role = { id: "job-1", title: "ホテルスタッフ" };
   const db = {
     prepare(sql) {
       return {
@@ -190,16 +203,19 @@ test("extracts the requested CV fields and saves the private PDF", async () => {
           return {
             async first() {
               if (sql.includes("WHERE file_hash")) return null;
+              if (sql.includes("FROM jobs") && sql.includes("title_key")) return role;
               throw new Error(`Unhandled first query: ${sql}`);
             },
             async run() {
               if (sql.includes("INSERT INTO candidates")) { savedParams = params; return; }
+              if (sql.includes("INSERT OR IGNORE INTO jobs") || sql.includes("INSERT INTO job_candidates")) return;
               throw new Error(`Unhandled run query: ${sql}`);
             }
           };
         }
       };
-    }
+    },
+    async batch(statements) { for (const statement of statements) await statement.run(); }
   };
   const bucket = {
     async put(key) { uploadedKey = key; },
@@ -223,6 +239,7 @@ test("extracts the requested CV fields and saves the private PDF", async () => {
   try {
     const form = new FormData();
     form.append("file", new File(["%PDF-1.4 test"], "candidate.pdf", { type: "application/pdf" }));
+    form.append("role_title", "ホテルスタッフ");
     const response = await importCv({
       env: { DB: db, CV_BUCKET: bucket, OPENAI_API_KEY: "test-key" },
       request: new Request("https://example.test/api/import", { method: "POST", headers: { "Cf-Access-Jwt-Assertion": "signed-access-jwt" }, body: form })
@@ -245,6 +262,7 @@ test("extracts the requested CV fields and saves the private PDF", async () => {
 test("uploads a PDF in local preview without an OpenAI key", async () => {
   let savedParams;
   let uploadedKey;
+  const role = { id: "job-1", title: "ホテルスタッフ" };
   const db = {
     prepare(sql) {
       return {
@@ -252,16 +270,19 @@ test("uploads a PDF in local preview without an OpenAI key", async () => {
           return {
             async first() {
               if (sql.includes("WHERE file_hash")) return null;
+              if (sql.includes("FROM jobs") && sql.includes("title_key")) return role;
               throw new Error(`Unhandled first query: ${sql}`);
             },
             async run() {
               if (sql.includes("INSERT INTO candidates")) { savedParams = params; return; }
+              if (sql.includes("INSERT OR IGNORE INTO jobs") || sql.includes("INSERT INTO job_candidates")) return;
               throw new Error(`Unhandled run query: ${sql}`);
             }
           };
         }
       };
-    }
+    },
+    async batch(statements) { for (const statement of statements) await statement.run(); }
   };
   const bucket = {
     async put(key) { uploadedKey = key; },
@@ -269,6 +290,7 @@ test("uploads a PDF in local preview without an OpenAI key", async () => {
   };
   const form = new FormData();
   form.append("file", new File(["%PDF-1.4 local test"], "CV Nguyen Van B.pdf", { type: "application/pdf" }));
+  form.append("role_title", "ホテルスタッフ");
   const originalFetch = globalThis.fetch;
   globalThis.fetch = async url => {
     assert.equal(url, "http://127.0.0.1:8790/extract");

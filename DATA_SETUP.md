@@ -24,7 +24,38 @@ Optional environment variable:
 
 - `OPENAI_MODEL`: defaults to `gpt-6-astra`.
 
-For a new database, run `schema.sql` in the D1 console. For an existing Recontact database, run `migrations/0002_add_cv_profile_fields.sql` once.
+For a new database, run `schema.sql` in the D1 console. For an existing Recontact database, run the unapplied migration files once, in numeric order.
+
+Before `migrations/0003_add_role_classification.sql`, run its duplicate-title preflight query. Resolve every duplicate open role deliberately; the migration intentionally fails at the unique index rather than choosing a canonical role automatically.
+
+## Existing CV role backfill
+
+Role backfill is SHA-256 based and defaults to dry-run. It never matches a candidate by name or filename.
+
+1. Copy `tools/role-folder-map.example.json` to the ignored `tools/role-folder-map.json` and map every exact first-level folder name to its canonical role.
+2. Export only `id` and `file_hash` from `candidates` to a local ignored JSON file, or point the tool at a disposable local D1/SQLite database.
+3. Review a dry-run report:
+
+```sh
+python3 tools/backfill_roles_from_folders.py \
+  --root /absolute/path/to/cv-folders \
+  --mapping tools/role-folder-map.json \
+  --candidate-hashes /absolute/path/to/candidate-hashes.json \
+  --report tools/role-backfill-report.json
+```
+
+4. Apply only after unmatched, ambiguous, and unmapped rows have been reviewed. `--apply` requires an explicit local database target:
+
+```sh
+python3 tools/backfill_roles_from_folders.py \
+  --root /absolute/path/to/cv-folders \
+  --mapping tools/role-folder-map.json \
+  --database /absolute/path/to/disposable-d1.sqlite \
+  --apply \
+  --report tools/role-backfill-report-applied.json
+```
+
+The tool does not write directly to production D1. Review its local result before using normal Cloudflare migration/deployment controls; real mappings, reports, and local paths must not be committed.
 
 ## Email access
 
