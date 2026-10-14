@@ -247,13 +247,22 @@ function updateSelectionUI(){
 async function api(path,options={}){
   const headers={...(options.headers||{})};
   if(options.body&&!(options.body instanceof FormData))headers['Content-Type']='application/json';
-  const response=await fetch(path,{...options,headers,credentials:'same-origin'});
+  const method=String(options.method||'GET').toUpperCase();
+  const retryable=method==='GET'||method==='HEAD';
+  let response;
+  for(let attempt=0;;attempt++){
+    response=await fetch(path,{...options,headers,credentials:'same-origin'});
+    if(!retryable||response.ok||response.status<500||attempt>=2)break;
+    await new Promise(resolve=>setTimeout(resolve,150*(attempt+1)));
+  }
   const contentType=response.headers.get('content-type')||'';
   const result=contentType.includes('application/json')?await response.json():await response.text();
   if(response.status===401)throw new Error('Phiên Cloudflare Access không hợp lệ. Hãy tải lại trang để đăng nhập.')
   if(!response.ok){
-    if(typeof result==='string'&&result.trim().startsWith('<')&&['127.0.0.1','localhost'].includes(location.hostname)){
-      const error=new Error('');error.silent=true;throw error;
+    if(typeof result==='string'&&result.trim().startsWith('<')){
+      if(['127.0.0.1','localhost'].includes(location.hostname)){const error=new Error('');error.silent=true;throw error}
+      console.error('API error (non-JSON response):',path,response.status,result);
+      throw new Error(`Máy chủ đang gặp sự cố (mã lỗi ${response.status}). Vui lòng thử lại sau ít phút.`);
     }
     throw new Error(typeof result==='string'?result:(result.error||'Không thể thực hiện thao tác.'));
   }
