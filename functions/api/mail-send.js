@@ -219,7 +219,11 @@ export async function onRequestPost(context) {
   }));
   await insertDeliveries(context.env.DB, batchId, deliveries);
 
-  const outcomes = await mapConcurrent(deliveries, CONCURRENCY_LIMIT, async delivery => {
+  // MIME construction is CPU/memory heavy when the same work document is
+  // attached to every message. Keep attachment batches bounded so a large
+  // PDF cannot push a Pages Function over its resource limit.
+  const sendConcurrency = attachments.length ? 2 : CONCURRENCY_LIMIT;
+  const outcomes = await mapConcurrent(deliveries, sendConcurrency, async delivery => {
     try {
       const providerResult = await sendWithRetry(provider, {
         from: {
