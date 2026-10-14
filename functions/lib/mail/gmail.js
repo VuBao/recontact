@@ -77,7 +77,7 @@ function validateMessage(message, env) {
   }
 }
 
-function buildMimeMessage(message) {
+function buildMimeMessage(message, encodeAttachment) {
   try {
     const mime = createMimeMessage();
     mime.setSender({ addr: message.from.email.trim(), name: message.from.name?.trim() });
@@ -88,7 +88,7 @@ function buildMimeMessage(message) {
       mime.addAttachment({
         filename: attachment.filename.trim(),
         contentType: attachment.contentType.trim(),
-        data: wrapBase64(bytesToBase64(attachment.bytes))
+        data: encodeAttachment(attachment)
       });
     }
     return mime.asEncoded();
@@ -113,6 +113,15 @@ export function createGmailProvider(env = {}, { fetchImpl = globalThis.fetch, no
   let cachedToken = null;
   let tokenExpiresAt = 0;
   let tokenRefreshPromise = null;
+  const encodedAttachmentCache = new WeakMap();
+
+  function encodeAttachment(attachment) {
+    const cached = encodedAttachmentCache.get(attachment);
+    if (cached) return cached;
+    const encoded = wrapBase64(bytesToBase64(attachment.bytes));
+    encodedAttachmentCache.set(attachment, encoded);
+    return encoded;
+  }
 
   async function refreshAccessToken() {
     const body = new URLSearchParams({
@@ -154,7 +163,7 @@ export function createGmailProvider(env = {}, { fetchImpl = globalThis.fetch, no
 
   async function send(message) {
     validateMessage(message, env);
-    const raw = buildMimeMessage(message);
+    const raw = buildMimeMessage(message, encodeAttachment);
     const token = await accessToken();
     const response = await safeFetch(fetchImpl, SEND_ENDPOINT, {
       method: "POST",
