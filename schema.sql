@@ -13,6 +13,15 @@ CREATE TABLE IF NOT EXISTS candidates (
   file_key TEXT,
   file_name TEXT,
   file_hash TEXT UNIQUE,
+  response_status TEXT,
+  response_name TEXT,
+  response_phone TEXT,
+  response_availability TEXT,
+  response_start_date TEXT,
+  response_note TEXT,
+  response_received_at TEXT,
+  response_message_id TEXT,
+  response_confirmed_at TEXT,
   created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
@@ -36,6 +45,7 @@ CREATE TABLE IF NOT EXISTS job_candidates (
   UNIQUE(job_id, candidate_id)
 );
 CREATE INDEX IF NOT EXISTS idx_candidates_status ON candidates(status);
+CREATE INDEX IF NOT EXISTS idx_candidates_response_status ON candidates(response_status);
 CREATE UNIQUE INDEX IF NOT EXISTS idx_jobs_open_title_key ON jobs(title_key) WHERE status = 'OPEN';
 CREATE INDEX IF NOT EXISTS idx_job_candidates_job ON job_candidates(job_id);
 CREATE INDEX IF NOT EXISTS idx_job_candidates_candidate ON job_candidates(candidate_id);

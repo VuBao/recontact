@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 import test from "node:test";
 import { onRequestGet, onRequestPatch, onRequestPost } from "../functions/api/mail/responses.js";
 import { onRequestPost as createManualResponse } from "../functions/api/mail/responses/manual.js";
@@ -6,6 +7,18 @@ import { onRequestPost as createManualResponse } from "../functions/api/mail/res
 function request(url, options = {}) {
   return new Request(url, { ...options, headers: { "Cf-Access-Jwt-Assertion": "test-jwt", ...options.headers } });
 }
+
+test("base schema includes every candidate response column", () => {
+  const schema = readFileSync(new URL("../schema.sql", import.meta.url), "utf8");
+  for (const column of [
+    "response_status", "response_name", "response_phone", "response_availability",
+    "response_start_date", "response_note", "response_received_at", "response_message_id",
+    "response_confirmed_at"
+  ]) {
+    assert.match(schema, new RegExp(`\\b${column}\\b`), `schema.sql must define ${column}`);
+  }
+  assert.match(schema, /idx_candidates_response_status/);
+});
 
 test("response sync safely skips when Gmail is not configured", async () => {
   const response = await onRequestPost({ env: { DB: {} }, request: request("https://example.test/api/mail/responses", { method: "POST", body: "{}" }) });

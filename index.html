@@ -157,8 +157,10 @@ function renderResponseBlocks(){
   }).join('');
 }
 async function loadResponseBlocks(){
-  try{await api('/api/mail/responses',{method:'POST',body:JSON.stringify({})})}catch(error){if(!error.silent)console.warn('Response sync unavailable:',error.message)}
   try{responseCandidates=await api('/api/mail/responses');renderResponseBlocks()}catch(error){responseCandidates=[];renderResponseBlocks();if(!error.silent)console.warn('Response list unavailable:',error.message)}
+}
+async function syncResponseBlocks(){
+  try{await api('/api/mail/responses',{method:'POST',body:JSON.stringify({})});await loadResponseBlocks()}catch(error){if(!error.silent)console.warn('Response sync unavailable:',error.message)}
 }
 async function updateResponseBlock(block,status){
   const payload={candidate_id:block.dataset.candidateId,status};
@@ -605,6 +607,7 @@ window.addEventListener('resize',()=>{fitRomajiNames();closeFilterMenu()});
 loadCandidates();
 loadJobs();
 loadResponseBlocks();
+syncResponseBlocks();
 </script>
 </body>
 </html>

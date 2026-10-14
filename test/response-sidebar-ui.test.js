@@ -34,3 +34,10 @@ test("manual response modal selects an existing candidate and uses the dedicated
   assert.match(html, /id="response-manual-note" maxlength="100"/);
   assert.match(html, /api\('\/api\/mail\/responses\/manual'/);
 });
+
+test("saved responses load before the optional Gmail sync completes", () => {
+  const loadFunction = html.match(/async function loadResponseBlocks\(\)\{([\s\S]*?)\n\}/)?.[1] || "";
+  assert.doesNotMatch(loadFunction, /method:'POST'/, "listing saved responses must not wait for Gmail sync");
+  assert.match(html, /async function syncResponseBlocks\(\)\{[\s\S]*?method:'POST'[\s\S]*?await loadResponseBlocks\(\)/);
+  assert.match(html, /loadResponseBlocks\(\);\n?syncResponseBlocks\(\);/);
+});
