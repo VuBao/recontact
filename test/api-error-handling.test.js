@@ -12,4 +12,6 @@ test("api() never leaks a raw HTML error page (e.g. Cloudflare's 'Worker exceede
   );
   assert.match(html, /console\.error\('API error \(non-JSON response\):'/, "the raw body must still be logged for debugging");
   assert.match(html, /Máy chủ đang gặp sự cố \(mã lỗi \$\{response\.status\}\)/, "production users must see a short, friendly message instead of raw HTML");
+  assert.match(html, /const retryable=method==='GET'\|\|method==='HEAD'/, "read-only API calls should be eligible for retry");
+  assert.match(html, /attempt>=2/, "retries must be bounded");
 });

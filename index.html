@@ -247,7 +247,14 @@ function updateSelectionUI(){
 async function api(path,options={}){
   const headers={...(options.headers||{})};
   if(options.body&&!(options.body instanceof FormData))headers['Content-Type']='application/json';
-  const response=await fetch(path,{...options,headers,credentials:'same-origin'});
+  const method=String(options.method||'GET').toUpperCase();
+  const retryable=method==='GET'||method==='HEAD';
+  let response;
+  for(let attempt=0;;attempt++){
+    response=await fetch(path,{...options,headers,credentials:'same-origin'});
+    if(!retryable||response.ok||response.status<500||attempt>=2)break;
+    await new Promise(resolve=>setTimeout(resolve,150*(attempt+1)));
+  }
   const contentType=response.headers.get('content-type')||'';
   const result=contentType.includes('application/json')?await response.json():await response.text();
   if(response.status===401)throw new Error('Phiên Cloudflare Access không hợp lệ. Hãy tải lại trang để đăng nhập.')
