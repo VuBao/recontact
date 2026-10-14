@@ -4,6 +4,7 @@ import { gmailHttpError, MailProviderError } from "./errors.js";
 
 const TOKEN_ENDPOINT = "https://oauth2.googleapis.com/token";
 const SEND_ENDPOINT = "https://gmail.googleapis.com/gmail/v1/users/me/messages/send";
+const LIST_ENDPOINT = "https://gmail.googleapis.com/gmail/v1/users/me/messages";
 const UNSAFE_HEADER_CHARACTERS = /[\r\n\0]/;
 const SIMPLE_EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const REQUIRED_CONFIG = [
@@ -192,4 +193,73 @@ export function createGmailProvider(env = {}, { fetchImpl = globalThis.fetch, no
   }
 
   return Object.freeze({ send });
+}
+
+function readerConfiguration(env) {
+  return ["GMAIL_CLIENT_ID", "GMAIL_CLIENT_SECRET", "GMAIL_REFRESH_TOKEN"]
+    .every(field => typeof env[field] === "string" && env[field].trim());
+}
+
+function decodeBase64Url(value) {
+  if (!value) return "";
+  const normalized = value.replace(/-/g, "+").replace(/_/g, "/").padEnd(Math.ceil(value.length / 4) * 4, "=");
+  try {
+    const binary = atob(normalized);
+    return new TextDecoder().decode(Uint8Array.from(binary, character => character.charCodeAt(0)));
+  } catch { return ""; }
+}
+
+function collectPlainText(payload, output = []) {
+  if (!payload) return output;
+  if (payload.mimeType === "text/plain" && payload.body?.data) output.push(decodeBase64Url(payload.body.data));
+  for (const part of payload.parts || []) collectPlainText(part, output);
+  return output;
+}
+
+function header(headers, name) {
+  return (headers || []).find(item => String(item.name).toLowerCase() === name)?.value || "";
+}
+
+export function createGmailReader(env = {}, { fetchImpl = globalThis.fetch, now = () => Date.now() } = {}) {
+  if (!readerConfiguration(env) || typeof fetchImpl !== "function") return null;
+  let cachedToken = null;
+  let tokenExpiresAt = 0;
+  let tokenRefreshPromise = null;
+  async function accessToken() {
+    if (cachedToken && now() < tokenExpiresAt) return cachedToken;
+    if (tokenRefreshPromise) return tokenRefreshPromise;
+    tokenRefreshPromise = (async () => {
+      const body = new URLSearchParams({ client_id: env.GMAIL_CLIENT_ID, client_secret: env.GMAIL_CLIENT_SECRET, refresh_token: env.GMAIL_REFRESH_TOKEN, grant_type: "refresh_token" });
+      const response = await fetchImpl(TOKEN_ENDPOINT, { method: "POST", headers: { "Content-Type": "application/x-www-form-urlencoded" }, body: body.toString() });
+      if (!response.ok) throw new MailProviderError("PROVIDER_AUTH_FAILED", 401);
+      const result = await response.json().catch(() => ({}));
+      if (!result.access_token) throw new MailProviderError("PROVIDER_AUTH_FAILED", 401);
+      cachedToken = result.access_token;
+      tokenExpiresAt = now() + Math.max(0, Number(result.expires_in || 3600) - 60) * 1000;
+      return cachedToken;
+    })().finally(() => { tokenRefreshPromise = null; });
+    return tokenRefreshPromise;
+  }
+  async function request(url) {
+    const response = await fetchImpl(url, { headers: { Authorization: `Bearer ${await accessToken()}` } });
+    if (!response.ok) throw gmailHttpError(response.status);
+    return response.json();
+  }
+  return Object.freeze({
+    async recentMessages() {
+      const list = await request(`${LIST_ENDPOINT}?maxResults=50&q=${encodeURIComponent("in:anywhere newer_than:30d")}`);
+      const messages = [];
+      for (const item of list.messages || []) {
+        const message = await request(`${LIST_ENDPOINT}/${encodeURIComponent(item.id)}?format=full`);
+        const text = collectPlainText(message.payload).join("\n");
+        messages.push({
+          id: message.id,
+          from: header(message.payload?.headers, "from"),
+          receivedAt: message.internalDate ? new Date(Number(message.internalDate)).toISOString() : new Date().toISOString(),
+          text
+        });
+      }
+      return messages;
+    }
+  });
 }
