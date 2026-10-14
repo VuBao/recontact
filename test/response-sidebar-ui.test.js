@@ -5,8 +5,10 @@ import test from "node:test";
 const html = readFileSync(new URL("../index.html", import.meta.url), "utf8");
 
 test("response sidebar contains the approved statuses and CV action", () => {
+  assert.match(html, /class="wrap dashboard-layout"/);
   assert.match(html, /id="response-sidebar"/);
   assert.match(html, /id="response-blocks"/);
+  assert.match(html, /id="response-manual-open"/);
   assert.match(html, /Chưa xác nhận/);
   assert.match(html, /Đã xác nhận/);
   assert.match(html, /Hoàn thành/);
@@ -22,4 +24,13 @@ test("response blocks use the requested colors and fixed fields", () => {
   for (const label of ["氏名：", "電話番号：", "電話に出られる曜日・時間：", "勤務開始可能日："]) {
     assert.match(html, new RegExp(label));
   }
+  assert.match(html, /data-response-field="note" maxlength="100"/);
+});
+
+test("manual response modal selects an existing candidate and uses the dedicated endpoint", () => {
+  assert.match(html, /id="response-manual-dialog"/);
+  assert.match(html, /id="response-manual-search"/);
+  assert.match(html, /id="response-manual-candidates"/);
+  assert.match(html, /id="response-manual-note" maxlength="100"/);
+  assert.match(html, /api\('\/api\/mail\/responses\/manual'/);
 });
