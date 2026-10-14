@@ -252,8 +252,10 @@ async function api(path,options={}){
   const result=contentType.includes('application/json')?await response.json():await response.text();
   if(response.status===401)throw new Error('Phiên Cloudflare Access không hợp lệ. Hãy tải lại trang để đăng nhập.')
   if(!response.ok){
-    if(typeof result==='string'&&result.trim().startsWith('<')&&['127.0.0.1','localhost'].includes(location.hostname)){
-      const error=new Error('');error.silent=true;throw error;
+    if(typeof result==='string'&&result.trim().startsWith('<')){
+      if(['127.0.0.1','localhost'].includes(location.hostname)){const error=new Error('');error.silent=true;throw error}
+      console.error('API error (non-JSON response):',path,response.status,result);
+      throw new Error(`Máy chủ đang gặp sự cố (mã lỗi ${response.status}). Vui lòng thử lại sau ít phút.`);
     }
     throw new Error(typeof result==='string'?result:(result.error||'Không thể thực hiện thao tác.'));
   }
