@@ -1,6 +1,6 @@
 # Gmail OAuth Setup & Integration Guide
 
-This guide documents the one-time configuration for connecting Recontact's candidate email integration to Google Cloud Gmail API (`gmail.send`) securely, without storing long-lived passwords in source code.
+This guide documents the one-time configuration for connecting Recontact's candidate email integration to Google Cloud Gmail API securely, without storing long-lived passwords in source code. The response-sync feature requires both sending and read access.
 
 ---
 
@@ -22,6 +22,7 @@ This guide documents the one-time configuration for connecting Recontact's candi
    - Add App name (e.g., `Recontact Candidate Mailer`) and developer contact email.
    - Under **Scopes**, add:
      - `https://www.googleapis.com/auth/gmail.send` (Send messages on your behalf).
+     - `https://www.googleapis.com/auth/gmail.readonly` (Read candidate replies for response extraction).
 
 4. **Create OAuth 2.0 Credentials**:
    - Navigate to **APIs & Services → Credentials → Create Credentials → OAuth client ID**.
@@ -44,7 +45,9 @@ Using Google OAuth 2.0 Playground:
    - Enter your `OAuth Client ID` and `OAuth Client Secret`.
 3. In Step 1 (Select & authorize APIs):
    - Scroll to **Gmail API v1**.
-   - Select `https://www.googleapis.com/auth/gmail.send`.
+   - Select both scopes:
+     - `https://www.googleapis.com/auth/gmail.send`
+     - `https://www.googleapis.com/auth/gmail.readonly`
    - Click **Authorize APIs** and sign in with the sending mailbox.
 4. In Step 2 (Exchange authorization code for tokens):
    - Click **Exchange authorization code for tokens**.
@@ -93,7 +96,7 @@ MAIL_FROM_NAME=株式会社K-ANH人材紹介
 ## 4. Credential Rotation & Revocation
 
 ### Rotating Tokens
-1. Generate a new refresh token using OAuth Playground or OAuth flow with the client credentials.
+1. Generate a new refresh token using OAuth Playground or OAuth flow with the client credentials and both scopes above. The existing send-only refresh token cannot be expanded in place.
 2. In Cloudflare Pages Settings → Variables and Secrets, update `GMAIL_REFRESH_TOKEN` with the new value.
 3. Trigger a redeployment or verify on the next request.
 
